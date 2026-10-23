@@ -1,0 +1,91 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A practice portfolio: add a few practice trades and see how they are doing, in AED." />
+    <title>Practice Portfolio</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="head">
+        <p class="eyebrow">Practice money only</p>
+        <h1>Practice portfolio</h1>
+        <p class="sub">Add a trade and see how it is doing. Everything is shown in AED; US prices use 3.6725 per dollar.</p>
+      </header>
+
+      <section class="summary" aria-labelledby="summary-title">
+        <h2 id="summary-title" class="visually-hidden">Portfolio total</h2>
+        <div class="summary-main">
+          <span class="label">Portfolio value</span>
+          <span class="big" id="total-value">AED 0.00</span>
+        </div>
+        <div class="summary-row">
+          <div><span class="label">Gain or loss</span><span id="total-gain" class="num">AED 0.00</span></div>
+          <div><span class="label">Return</span><span id="total-pct" class="num">â€”</span></div>
+          <div><span class="label">Paid</span><span id="total-cost" class="num">AED 0.00</span></div>
+        </div>
+      </section>
+
+      <div id="notice" class="notice" role="status" hidden></div>
+
+      <section class="card" aria-labelledby="add-title">
+        <h2 id="add-title">Add a practice trade</h2>
+        <form id="trade-form" novalidate>
+          <div class="field">
+            <label for="symbol">Symbol</label>
+            <input id="symbol" name="symbol" list="symbols" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. EMAAR" aria-describedby="symbol-hint symbol-error" />
+            <datalist id="symbols"></datalist>
+            <p id="symbol-hint" class="hint">Pick a stock to see its sample price.</p>
+            <p id="symbol-error" class="error" hidden></p>
+            <div class="chips" id="chips" aria-label="Quick pick"></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="shares">Number of shares</label>
+              <input id="shares" name="shares" inputmode="numeric" autocomplete="off" placeholder="e.g. 10" aria-describedby="shares-error" />
+              <p id="shares-error" class="error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="price">Buy price per share <span id="price-ccy">(AED)</span></label>
+              <input id="price" name="price" inputmode="decimal" autocomplete="off" placeholder="e.g. 14.00" aria-describedby="price-error" />
+              <p id="price-error" class="error" hidden></p>
+            </div>
+          </div>
+          <button type="submit" class="primary">Add trade</button>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="holdings-title">
+        <h2 id="holdings-title">Holdings</h2>
+        <p id="empty" class="empty">No trades yet. Add one above to start your practice portfolio.</p>
+        <table id="holdings" class="holdings" hidden>
+          <thead>
+            <tr><th scope="col">Stock</th><th scope="col">Shares</th><th scope="col">Value</th><th scope="col">Gain or loss</th><th scope="col">%</th></tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr><th scope="row" colspan="2">Total</th><td id="foot-value" data-label="Value"></td><td id="foot-gain" data-label="Gain or loss"></td><td id="foot-pct" data-label="%"></td></tr>
+          </tfoot>
+        </table>
+      </section>
+
+      <section class="card" aria-labelledby="trades-title" id="trades-card" hidden>
+        <div class="card-title-row">
+          <h2 id="trades-title">Your trades</h2>
+          <button type="button" id="clear-all" class="link">Clear all</button>
+        </div>
+        <ul id="trades" class="trades"></ul>
+      </section>
+
+      <footer class="foot">
+        <p>Sample prices for practice only: EMAAR AED 14.00, FAB AED 15.50, ADNOCGAS AED 3.40, AAPL USD 230.00, MSFT USD 430.00. Not investment advice. Trades are saved in this browser only.</p>
+      </footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

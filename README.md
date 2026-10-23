@@ -54,6 +54,12 @@ Every push to `main` runs the tests and the build, then deploys to GitHub Pages 
 3. Share of portfolio per position, and a simple chart over time.
 4. Run the end-to-end test in CI as well.
 
+## One thing that went wrong, and how I caught it
+
+A style fix for the mobile holdings table silently did nothing. The total row was meant to get small labels ("Value", "Gain or loss", "%") on phones, but the find-and-replace command matched nothing, because the file used Unix line endings and the search text used Windows ones. The command reported no error.
+
+I caught it because every edit is checked by searching for the new line afterwards: only 1 of the 2 expected matches came back. The browser test's mobile screenshot confirmed it, with the total row's numbers shown without labels. I re-applied the change with an exact-match edit, added a `.gitattributes` file so the repository always uses one line-ending format, and re-ran the browser test.
+
 ## How I worked with Claude Code
 
 The prompts are in [`docs/prompt-history.md`](docs/prompt-history.md). The money maths was written test-first: each test was run and seen to fail before the code existed.

@@ -6,11 +6,11 @@ A small web app where a first-time investor adds a few practice trades and sees 
 
 ## What I built
 
-- **Add a practice trade:** symbol, number of shares and buy price, with a clear message under each field when something is wrong (unknown symbol, decimals in shares, a price with three decimals, and so on). The symbol field has quick-pick chips and shows the sample price, and the price label switches to USD for AAPL and MSFT.
+- **Add a practice trade:** pick one of the five sample stocks from a list showing name, exchange and price. The buy price fills in with the sample price and can be changed. A line shows what the trade will cost in AED before you add it. Shares and price get a clear message under the field when something is wrong (decimals in shares, a price with three decimals, and so on).
 - **Holdings:** one row per stock (several trades in the same stock are merged), with value and gain or loss in AED and as a percentage, plus the portfolio total.
 - **Sample prices from the brief:** EMAAR 14.00, FAB 15.50, ADNOCGAS 3.40 (AED); AAPL 230.00, MSFT 430.00 (USD). US stocks are entered in dollars and everything is shown in AED at 3.6725.
 - **Saved between visits** in browser storage. Corrupted or blocked storage shows a message instead of breaking the page.
-- **Tests:** 26 unit tests for the money maths, validation and storage, plus an end-to-end browser check.
+- **Tests:** 28 unit tests for the money maths, validation and storage, plus an end-to-end browser check.
 
 ## How the money maths works
 

@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { buildPortfolio, validateTrade, type Trade } from './portfolio';
+import { buildPortfolio, previewCost, validateTrade, type Trade } from './portfolio';
+
+describe('previewCost', () => {
+  it('shows what a trade will cost in AED before it is added', () => {
+    expect(previewCost({ symbol: 'FAB', shares: '10', price: '15.50' })).toBe(155_000_000n);
+    // 3 MSFT at 430.00 USD = 1,290 USD = 4,737.525 AED
+    expect(previewCost({ symbol: 'MSFT', shares: '3', price: '430.00' })).toBe(4_737_525_000n);
+  });
+
+  it('shows nothing until the trade is valid', () => {
+    expect(previewCost({ symbol: 'FAB', shares: '', price: '15.50' })).toBeNull();
+    expect(previewCost({ symbol: 'FAB', shares: '2.5', price: '15.50' })).toBeNull();
+    expect(previewCost({ symbol: '', shares: '10', price: '15.50' })).toBeNull();
+  });
+});
 
 const trade = (symbol: string, shares: number, priceCents: bigint): Trade => ({
   id: `${symbol}-${shares}-${priceCents}`,

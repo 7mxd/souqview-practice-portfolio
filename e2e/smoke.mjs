@@ -1,4 +1,4 @@
-// End-to-end smoke test in a real browser: add trades, check numbers, reload, check they persist.
+﻿// End-to-end smoke test in a real browser: add trades, check numbers, reload, check they persist.
 // Usage: npm run build && npx vite preview --port 4173 &  then  node e2e/smoke.mjs [url]
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
@@ -15,27 +15,31 @@ const text = id => page.locator(`#${id}`).innerText();
 
 // 1. Invalid input shows clear messages and adds nothing
 await page.click('button[type=submit]');
-assert.equal(await text('symbol-error'), '! Choose a symbol.'.slice(2));
+assert.equal(await text('symbol-error'), 'Choose a symbol.');
 assert.match(await text('shares-error'), /Enter how many shares/);
 assert.match(await text('price-error'), /Enter the price you paid/);
-await page.fill('#symbol', 'tsla');
+await page.check('input[name=symbol][value=FAB]');
+assert.equal(await page.inputValue('#price'), '15.50'); // filled with the sample price
 await page.fill('#shares', '2.5');
 await page.fill('#price', '1.234');
 await page.click('button[type=submit]');
-assert.match(await text('symbol-error'), /isn't in this practice list/);
 assert.equal(await text('shares-error'), 'Shares must be a whole number.');
 assert.match(await text('price-error'), /up to 2 decimals/);
 assert.equal(await page.locator('#holdings').isHidden(), true);
 
-// 2. Add an AED and a USD trade
-await page.fill('#symbol', 'EMAAR');
+// 2. Add an AED and a USD trade; the buy price can be changed after autofill
+await page.check('input[name=symbol][value=EMAAR]');
+assert.equal(await page.inputValue('#price'), '14.00');
 await page.fill('#shares', '100');
 await page.fill('#price', '12.50');
+assert.equal(await text('cost-preview'), 'This trade costs AED 1,250.00.');
 await page.click('button[type=submit]');
-await page.click('.chip:text("AAPL")');
+await page.check('input[name=symbol][value=AAPL]');
 assert.match(await text('price-ccy'), /USD/);
+assert.equal(await page.inputValue('#price'), '230.00');
 await page.fill('#shares', '10');
 await page.fill('#price', '200');
+assert.equal(await text('cost-preview'), 'This trade costs AED 7,345.00 at 3.6725 per dollar.');
 await page.click('button[type=submit]');
 
 // EMAAR value 1,400.00, gain +150.00 (+12.00%); AAPL value 8,446.75, gain +1,101.75 (+15.00%)

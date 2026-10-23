@@ -1,15 +1,17 @@
-// The page: reads the form, keeps the list of trades, and draws the portfolio.
+﻿// The page: reads the form, keeps the list of trades, and draws the portfolio.
 // All maths lives in money.ts / portfolio.ts (tested); this file only wires up the DOM.
 import './style.css';
 import { formatAed, formatPct, toAed } from './money';
-import { buildPortfolio, findInstrument, INSTRUMENTS, validateTrade, type FieldErrors, type Trade, type TradeInput } from './portfolio';
+import { buildPortfolio, findInstrument, INSTRUMENTS, previewCost, validateTrade, type FieldErrors, type Trade, type TradeInput } from './portfolio';
 import { loadTrades, saveTrades } from './storage';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const form = $<HTMLFormElement>('trade-form');
-const fields = { symbol: $<HTMLInputElement>('symbol'), shares: $<HTMLInputElement>('shares'), price: $<HTMLInputElement>('price') };
+const stockList = $<HTMLDivElement>('stock-list');
+const fields = { shares: $<HTMLInputElement>('shares'), price: $<HTMLInputElement>('price') };
 const notice = $<HTMLDivElement>('notice');
+const preview = $<HTMLParagraphElement>('cost-preview');
 
 const loaded = loadTrades(localStorage);
 let trades: Trade[] = loaded.trades;
@@ -24,74 +26,82 @@ function persist() {
   if (!saveTrades(localStorage, trades).ok) showNotice('This browser is not letting the page save, so trades will be lost when you leave.');
 }
 
-// Symbol list and quick-pick chips
-const datalist = $<HTMLDataListElement>('symbols');
-const chips = $<HTMLDivElement>('chips');
+const priceText = (cents: bigint) => (Number(cents) / 100).toFixed(2);
+
+// Stock picker: one radio option per sample stock, showing its price
 for (const inst of INSTRUMENTS) {
-  const opt = document.createElement('option');
-  opt.value = inst.symbol;
-  opt.label = inst.name;
-  datalist.append(opt);
-  const chip = document.createElement('button');
-  chip.type = 'button';
-  chip.className = 'chip';
-  chip.textContent = inst.symbol;
-  chip.addEventListener('click', () => {
-    fields.symbol.value = inst.symbol;
-    updateSymbolHint();
+  const label = document.createElement('label');
+  label.className = 'stock';
+  label.innerHTML = `<input type="radio" name="symbol" /><span class="stock-sym"></span><span class="stock-name"></span><span class="stock-price"></span>`;
+  const radio = label.querySelector('input')!;
+  radio.value = inst.symbol;
+  label.querySelector('.stock-sym')!.textContent = inst.symbol;
+  label.querySelector('.stock-name')!.textContent = `${inst.name} · ${inst.exchange}`;
+  const aed = inst.currency === 'USD' ? ` ≈ ${formatAed(toAed(inst.priceCents, 'USD'))}` : '';
+  label.querySelector('.stock-price')!.textContent = `${inst.currency} ${priceText(inst.priceCents)}${aed}`;
+  radio.addEventListener('change', () => {
+    // Fill in the sample price; the user can still change it.
+    fields.price.value = priceText(inst.priceCents);
+    $<HTMLSpanElement>('price-ccy').textContent = `(${inst.currency})`;
     clearError('symbol');
+    clearError('price');
+    updatePreview();
     fields.shares.focus();
   });
-  chips.append(chip);
+  stockList.append(label);
 }
 
-function updateSymbolHint() {
-  const inst = findInstrument(fields.symbol.value);
-  const hint = $<HTMLParagraphElement>('symbol-hint');
-  $<HTMLSpanElement>('price-ccy').textContent = `(${inst?.currency ?? 'AED'})`;
-  for (const c of chips.children) c.classList.toggle('on', c.textContent === inst?.symbol);
-  if (!inst) {
-    hint.textContent = 'Pick a stock to see its sample price.';
+const selectedSymbol = () => stockList.querySelector<HTMLInputElement>('input:checked')?.value ?? '';
+const currentInput = (): TradeInput => ({ symbol: selectedSymbol(), shares: fields.shares.value, price: fields.price.value });
+
+function updatePreview() {
+  const cost = previewCost(currentInput());
+  const inst = findInstrument(selectedSymbol());
+  if (cost === null || !inst) {
+    preview.textContent = '';
     return;
   }
-  const price = `${inst.currency} ${(Number(inst.priceCents) / 100).toFixed(2)}`;
-  hint.textContent = inst.currency === 'USD'
-    ? `${inst.name}: sample price ${price} (${formatAed(toAed(inst.priceCents, 'USD'))}). Enter your buy price in USD.`
-    : `${inst.name}: sample price ${price}.`;
+  preview.textContent = `This trade costs ${formatAed(cost)}${inst.currency === 'USD' ? ' at 3.6725 per dollar' : ''}.`;
 }
-fields.symbol.addEventListener('input', updateSymbolHint);
 
 function setError(name: keyof TradeInput, message: string) {
   const el = $<HTMLParagraphElement>(`${name}-error`);
   el.textContent = message;
   el.hidden = false;
-  fields[name].setAttribute('aria-invalid', 'true');
+  if (name !== 'symbol') fields[name].setAttribute('aria-invalid', 'true');
 }
 
 function clearError(name: keyof TradeInput) {
   $<HTMLParagraphElement>(`${name}-error`).hidden = true;
-  fields[name].removeAttribute('aria-invalid');
+  if (name !== 'symbol') fields[name].removeAttribute('aria-invalid');
 }
 
-for (const name of Object.keys(fields) as (keyof TradeInput)[]) fields[name].addEventListener('input', () => clearError(name));
+for (const name of ['shares', 'price'] as const) {
+  fields[name].addEventListener('input', () => {
+    clearError(name);
+    updatePreview();
+  });
+}
 
 form.addEventListener('submit', e => {
   e.preventDefault();
-  const result = validateTrade({ symbol: fields.symbol.value, shares: fields.shares.value, price: fields.price.value });
-  (Object.keys(fields) as (keyof TradeInput)[]).forEach(clearError);
+  const result = validateTrade(currentInput());
+  (['symbol', 'shares', 'price'] as const).forEach(clearError);
   if (!result.ok) {
     const errors: FieldErrors = result.errors;
     const order: (keyof TradeInput)[] = ['symbol', 'shares', 'price'];
     for (const name of order) if (errors[name]) setError(name, errors[name]!);
-    fields[order.find(n => errors[n])!].focus();
+    const first = order.find(n => errors[n])!;
+    (first === 'symbol' ? stockList.querySelector<HTMLInputElement>('input')! : fields[first]).focus();
     return;
   }
   trades = [...trades, result.trade];
   persist();
   form.reset();
-  updateSymbolHint();
+  $<HTMLSpanElement>('price-ccy').textContent = '(AED)';
+  updatePreview();
   render();
-  fields.symbol.focus();
+  stockList.querySelector<HTMLInputElement>('input')!.focus();
 });
 
 $<HTMLButtonElement>('clear-all').addEventListener('click', () => {
@@ -132,7 +142,7 @@ function render() {
       name.scope = 'row';
       name.innerHTML = '<span class="sym"></span><span class="name"></span>';
       name.querySelector('.sym')!.textContent = p.symbol;
-      name.querySelector('.name')!.textContent = `${p.name} · ${p.currency}`;
+      name.querySelector('.name')!.textContent = `${p.name} Â· ${p.currency}`;
       tr.append(
         name,
         cell(p.shares.toLocaleString('en'), 'num', 'Shares'),

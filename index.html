@@ -36,14 +36,11 @@
       <section class="card" aria-labelledby="add-title">
         <h2 id="add-title">Add a practice trade</h2>
         <form id="trade-form" novalidate>
-          <div class="field">
-            <label for="symbol">Symbol</label>
-            <input id="symbol" name="symbol" list="symbols" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. EMAAR" aria-describedby="symbol-hint symbol-error" />
-            <datalist id="symbols"></datalist>
-            <p id="symbol-hint" class="hint">Pick a stock to see its sample price.</p>
+          <fieldset class="field" aria-describedby="symbol-error">
+            <legend>Stock</legend>
+            <div class="stock-list" id="stock-list"></div>
             <p id="symbol-error" class="error" hidden></p>
-            <div class="chips" id="chips" aria-label="Quick pick"></div>
-          </div>
+          </fieldset>
           <div class="field-row">
             <div class="field">
               <label for="shares">Number of shares</label>
@@ -53,9 +50,11 @@
             <div class="field">
               <label for="price">Buy price per share <span id="price-ccy">(AED)</span></label>
               <input id="price" name="price" inputmode="decimal" autocomplete="off" placeholder="e.g. 14.00" aria-describedby="price-error" />
+              <p id="price-hint" class="hint">Filled in with the sample price. You can change it.</p>
               <p id="price-error" class="error" hidden></p>
             </div>
           </div>
+          <p id="cost-preview" class="cost-preview" aria-live="polite"></p>
           <button type="submit" class="primary">Add trade</button>
         </form>
       </section>

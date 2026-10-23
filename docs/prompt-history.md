@@ -16,3 +16,18 @@ _With a screenshot of the full task page ("Ship a small app with Claude Code")._
 _With a screenshot of the Cloudflare DNS record: CNAME practice-portfolio → 7mxd.github.io, DNS only._
 > Done.
 
+
+## Prompt 4 — Symbol list and automatic price
+> The app is still very simple.
+> - Instead of writing the symbol manually or selecting one of 5 available symbols, I want to do the following: by using the required api, a list of all symbols will be there and the pay per share will be filled automatically.
+
+
+## Prompt 5 — Questions about scope
+> I am trying to give a full user experience even if it is for testing purposes. What would you say?
+
+## Prompt 6
+> What does he mean by "4-hour limit"?
+
+## Prompt 7 — Decision
+> Okay. I would go with guidance given by the brief and "What to build".
+

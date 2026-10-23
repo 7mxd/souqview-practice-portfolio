@@ -1,20 +1,21 @@
-// Practice trades, input validation and portfolio valuation.
+﻿// Practice trades, input validation and portfolio valuation.
 import { parsePrice, toAed, type Currency } from './money';
 
 export interface Instrument {
   symbol: string;
   name: string;
+  exchange: string;
   currency: Currency;
   priceCents: bigint; // sample "current" price, in its own currency
 }
 
 // Sample prices given in the brief (made up for this test).
 export const INSTRUMENTS: readonly Instrument[] = [
-  { symbol: 'EMAAR', name: 'Emaar Properties', currency: 'AED', priceCents: 1400n },
-  { symbol: 'FAB', name: 'First Abu Dhabi Bank', currency: 'AED', priceCents: 1550n },
-  { symbol: 'ADNOCGAS', name: 'ADNOC Gas', currency: 'AED', priceCents: 340n },
-  { symbol: 'AAPL', name: 'Apple', currency: 'USD', priceCents: 23000n },
-  { symbol: 'MSFT', name: 'Microsoft', currency: 'USD', priceCents: 43000n },
+  { symbol: 'EMAAR', name: 'Emaar Properties', exchange: 'DFM', currency: 'AED', priceCents: 1400n },
+  { symbol: 'FAB', name: 'First Abu Dhabi Bank', exchange: 'ADX', currency: 'AED', priceCents: 1550n },
+  { symbol: 'ADNOCGAS', name: 'ADNOC Gas', exchange: 'ADX', currency: 'AED', priceCents: 340n },
+  { symbol: 'AAPL', name: 'Apple', exchange: 'NASDAQ', currency: 'USD', priceCents: 23000n },
+  { symbol: 'MSFT', name: 'Microsoft', exchange: 'NASDAQ', currency: 'USD', priceCents: 43000n },
 ];
 
 const BY_SYMBOL = new Map(INSTRUMENTS.map(i => [i.symbol, i]));
@@ -44,7 +45,7 @@ const symbolList = () => {
   return `${s.slice(0, -1).join(', ')} or ${s[s.length - 1]}`;
 };
 
-export function validateTrade(input: TradeInput, now = new Date(), id = crypto.randomUUID()): Validation {
+export function validateTrade(input: TradeInput, now = new Date(), id: string = crypto.randomUUID()): Validation {
   const errors: FieldErrors = {};
 
   const symbol = input.symbol.trim().toUpperCase();
@@ -118,4 +119,11 @@ export function buildPortfolio(trades: readonly Trade[]): Portfolio {
     { costMicro: 0n, valueMicro: 0n, gainMicro: 0n },
   );
   return { positions, totals };
+}
+
+/** What a trade will cost in micro-AED, or null until the inputs are valid. */
+export function previewCost(input: TradeInput): bigint | null {
+  const r = validateTrade(input, new Date(0), 'preview');
+  if (!r.ok) return null;
+  return BigInt(r.trade.shares) * toAed(r.trade.priceCents, findInstrument(r.trade.symbol)!.currency);
 }

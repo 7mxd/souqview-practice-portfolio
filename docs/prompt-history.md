@@ -11,3 +11,8 @@ _With a screenshot of the full task page ("Ship a small app with Claude Code")._
 > - For the link: I will put it instead as a sub-domain on 7mxd.me
 > - For the screen-recording, when submitting the link of the app, I will send an email to Mohammed confirming that, and telling that the careers website doesn't ask for a video, but if it is still required, let me know.
 > - For the design of the website, do we go with our design or something that follows the design of SouqView?
+
+## Prompt 3 — DNS record added
+_With a screenshot of the Cloudflare DNS record: CNAME practice-portfolio → 7mxd.github.io, DNS only._
+> Done.
+

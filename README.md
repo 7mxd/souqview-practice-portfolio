@@ -1,8 +1,8 @@
-# Practice Portfolio
+﻿# Practice Portfolio
 
 A small web app where a first-time investor adds a few practice trades and sees how they are doing, all in AED.
 
-**Live:** https://7mxd.github.io/souqview-practice-portfolio/
+**Live:** https://practice-portfolio.7mxd.me/
 
 ## What I built
 
@@ -14,7 +14,7 @@ A small web app where a first-time investor adds a few practice trades and sees 
 
 ## How the money maths works
 
-Money never passes through a floating-point number. Prices are parsed from text into whole cents, converted into micro-AED (millionths of a dirham) with BigInt, and only rounded to fils (half away from zero) when shown. 1 cent × 3.6725 is exactly 36,725 micro-AED, so the USD conversion is exact. For example, 230.00 USD is 844.675 AED and displays as AED 844.68.
+Money never passes through a floating-point number. Prices are parsed from text into whole cents, converted into micro-AED (millionths of a dirham) with BigInt, and only rounded to fils (half away from zero) when shown. 1 cent Ã— 3.6725 is exactly 36,725 micro-AED, so the USD conversion is exact. For example, 230.00 USD is 844.675 AED and displays as AED 844.68.
 
 The portfolio total is calculated from the exact values and rounded once, so in rare cases it can differ by 0.01 from the sum of the rounded rows. That is the more accurate choice.
 
@@ -34,7 +34,7 @@ Every push to `main` runs the tests and the build, then deploys to GitHub Pages 
 
 | File | What it does |
 |---|---|
-| `src/money.ts` | Parsing prices, USD → AED, rounding and formatting. Pure functions. |
+| `src/money.ts` | Parsing prices, USD â†’ AED, rounding and formatting. Pure functions. |
 | `src/portfolio.ts` | The five instruments, trade validation, merging trades into positions, totals. |
 | `src/storage.ts` | Saving and loading trades (BigInt as strings), tolerant of bad data. |
 | `src/main.ts` | The page only: reads the form, shows errors, draws the tables. |

@@ -1,4 +1,4 @@
-﻿// The page: reads the form, keeps the list of trades, and draws the portfolio.
+// The page: reads the form, keeps the list of trades, and draws the portfolio.
 // All maths lives in money.ts / portfolio.ts (tested); this file only wires up the DOM.
 import './style.css';
 import { formatAed, formatPct, toAed } from './money';
@@ -142,13 +142,32 @@ function render() {
       name.scope = 'row';
       name.innerHTML = '<span class="sym"></span><span class="name"></span>';
       name.querySelector('.sym')!.textContent = p.symbol;
-      name.querySelector('.name')!.textContent = `${p.name} Â· ${p.currency}`;
+      const count = trades.filter(t => t.symbol === p.symbol).length;
+      name.querySelector('.name')!.textContent =
+        `${p.name} · paid ${formatAed(p.costMicro)}${count > 1 ? ` over ${count} trades` : ''}`;
+
+      const action = document.createElement('td');
+      action.className = 'action';
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'link';
+      remove.textContent = 'Remove';
+      remove.setAttribute('aria-label', `Remove ${p.symbol}`);
+      remove.addEventListener('click', () => {
+        if (count > 1 && !confirm(`Remove all ${count} ${p.symbol} trades?`)) return;
+        trades = trades.filter(t => t.symbol !== p.symbol);
+        persist();
+        render();
+      });
+      action.append(remove);
+
       tr.append(
         name,
         cell(p.shares.toLocaleString('en'), 'num', 'Shares'),
         cell(formatAed(p.valueMicro), 'num', 'Value'),
         cell(formatAed(p.gainMicro, { signed: true }), `num ${toneClass(p.gainMicro)}`, 'Gain or loss'),
         cell(formatPct(p.gainMicro, p.costMicro), `num ${toneClass(p.gainMicro)}`, '%'),
+        action,
       );
       return tr;
     }),
@@ -162,29 +181,7 @@ function render() {
   fp.className = `num ${toneClass(totals.gainMicro)}`;
   table.hidden = positions.length === 0;
   $('empty').hidden = positions.length > 0;
-
-  const list = $<HTMLUListElement>('trades');
-  list.replaceChildren(
-    ...[...trades].reverse().map(t => {
-      const inst = findInstrument(t.symbol)!;
-      const li = document.createElement('li');
-      const text = document.createElement('span');
-      text.textContent = `${t.shares.toLocaleString('en')} ${t.symbol} at ${inst.currency} ${(Number(t.priceCents) / 100).toFixed(2)}`;
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.className = 'link';
-      remove.textContent = 'Remove';
-      remove.setAttribute('aria-label', `Remove ${text.textContent}`);
-      remove.addEventListener('click', () => {
-        trades = trades.filter(x => x.id !== t.id);
-        persist();
-        render();
-      });
-      li.append(text, remove);
-      return li;
-    }),
-  );
-  $('trades-card').hidden = trades.length === 0;
+  $('clear-all').hidden = positions.length === 0;
 }
 
 render();

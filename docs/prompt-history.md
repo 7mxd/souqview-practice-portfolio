@@ -31,3 +31,10 @@ _With a screenshot of the Cloudflare DNS record: CNAME practice-portfolio → 7m
 ## Prompt 7 — Decision
 > Okay. I would go with guidance given by the brief and "What to build".
 
+## Prompt 8 — Layout feedback from my phone
+_With three iPhone screenshots of the live app._
+> 1. Isn't "Your trades" almost repetitive with "Holdings"? We can move "Remove" and "Clear all" to the Holdings card.
+> 2. I would suggest moving the "Everything is shown in AED …" point to the footer, and making the footer a bit more organized.
+>
+> - Ensure that my points doesn't go against the requirements.
+

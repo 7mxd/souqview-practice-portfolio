@@ -1,4 +1,4 @@
-﻿// Practice trades, input validation and portfolio valuation.
+// Practice trades, input validation and portfolio valuation.
 import { parsePrice, toAed, type Currency } from './money';
 
 export interface Instrument {

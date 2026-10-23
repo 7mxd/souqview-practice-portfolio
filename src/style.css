@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --cream: #fbfbfa;
   --canvas: #efede6;
   --sand: #f6efdf;
@@ -45,7 +45,7 @@ body { margin: 0; }
 
 form { display: grid; gap: 14px; }
 .field { display: grid; gap: 6px; }
-.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
 label { font-weight: 500; font-size: 14px; }
 input {
   font: inherit; font-size: 16px; padding: 12px 14px; border-radius: 12px;
@@ -77,11 +77,14 @@ input[aria-invalid='true'] { border-color: var(--down); background: #fdf5f5; }
 .holdings .name { display: block; font-size: 13px; color: var(--text-2); }
 .holdings tfoot th, .holdings tfoot td { font-weight: 600; border-top: 2px solid var(--border); }
 
-.trades { list-style: none; margin: 0; padding: 0; }
-.trades li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border-top: 1px solid var(--border-soft); }
-.trades li:first-child { border-top: 0; }
+.holdings td.action { width: 1%; white-space: nowrap; padding-left: 4px; }
+.card-title-row h2 { margin-bottom: 14px; }
 
-.foot { font-size: 13px; color: var(--text-3); }
+.foot { font-size: 13px; color: var(--text-2); border-top: 1px solid var(--border); padding-top: 18px; margin-top: 8px; }
+.foot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 0; }
+.foot-grid dt { font-size: 11px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+.foot-grid dd { margin: 0; line-height: 1.5; }
+.foot-note { margin: 16px 0 0; color: var(--text-3); }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -110,7 +113,11 @@ legend { font-weight: 500; font-size: 14px; padding: 0; margin-bottom: 6px; }
   .holdings thead { display: none; }
   .holdings tbody tr, .holdings tfoot tr { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; padding: 12px 0; border-top: 1px solid var(--border-soft); }
   .holdings tbody th, .holdings tbody td, .holdings tfoot th, .holdings tfoot td { border: 0; padding: 0; text-align: left; }
-  .holdings tbody th { grid-column: 1 / -1; margin-bottom: 4px; }
+  .holdings tbody tr { position: relative; }
+  .holdings tbody th { grid-column: 1 / -1; margin-bottom: 4px; padding-right: 80px; }
+  .holdings tbody td.action { position: absolute; top: 4px; right: 0; width: auto; }
+  .holdings tbody td.action::before { content: none; }
+  .foot-grid { grid-template-columns: 1fr; gap: 12px; }
   .holdings tbody td::before { content: attr(data-label) ' '; color: var(--text-2); font-weight: 400; font-size: 13px; display: block; }
   .holdings tfoot th { grid-column: 1 / -1; }
   .holdings tfoot td::before { content: attr(data-label) ' '; color: var(--text-2); font-weight: 400; font-size: 13px; display: block; }

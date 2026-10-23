@@ -1,4 +1,4 @@
-﻿// End-to-end smoke test in a real browser: add trades, check numbers, reload, check they persist.
+// End-to-end smoke test in a real browser: add trades, check numbers, reload, check they persist.
 // Usage: npm run build && npx vite preview --port 4173 &  then  node e2e/smoke.mjs [url]
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
@@ -54,8 +54,11 @@ assert.match(rows[1], /EMAAR[\s\S]*AED 1,400\.00[\s\S]*\+AED 150\.00[\s\S]*\+12\
 await page.reload();
 assert.equal(await text('total-value'), 'AED 9,846.75');
 
-// 4. Remove one trade
-await page.locator('#trades li', { hasText: 'EMAAR' }).getByRole('button', { name: /Remove/ }).click();
+// 4. Holding detail reads correctly (caught a garbled "·" once)
+assert.equal(await page.locator('#holdings tbody tr', { hasText: 'EMAAR' }).locator('.name').innerText(), 'Emaar Properties · paid AED 1,250.00');
+
+// 5. Remove a holding from the Holdings card
+await page.getByRole('button', { name: 'Remove EMAAR' }).click();
 assert.equal(await text('total-value'), 'AED 8,446.75');
 
 await page.screenshot({ path: 'e2e/desktop.png', fullPage: true });

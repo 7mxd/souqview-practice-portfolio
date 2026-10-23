@@ -1,4 +1,4 @@
-﻿# Practice Portfolio
+# Practice Portfolio
 
 A small web app where a first-time investor adds a few practice trades and sees how they are doing, all in AED.
 
@@ -7,14 +7,14 @@ A small web app where a first-time investor adds a few practice trades and sees 
 ## What I built
 
 - **Add a practice trade:** pick one of the five sample stocks from a list showing name, exchange and price. The buy price fills in with the sample price and can be changed. A line shows what the trade will cost in AED before you add it. Shares and price get a clear message under the field when something is wrong (decimals in shares, a price with three decimals, and so on).
-- **Holdings:** one row per stock (several trades in the same stock are merged), with value and gain or loss in AED and as a percentage, plus the portfolio total.
+- **Holdings:** one row per stock (several trades in the same stock are merged), with what was paid, value and gain or loss in AED and as a percentage, plus the portfolio total. Each holding can be removed (it asks first when it holds more than one trade), or everything can be cleared.
 - **Sample prices from the brief:** EMAAR 14.00, FAB 15.50, ADNOCGAS 3.40 (AED); AAPL 230.00, MSFT 430.00 (USD). US stocks are entered in dollars and everything is shown in AED at 3.6725.
 - **Saved between visits** in browser storage. Corrupted or blocked storage shows a message instead of breaking the page.
-- **Tests:** 28 unit tests for the money maths, validation and storage, plus an end-to-end browser check.
+- **Tests:** 30 unit tests for the money maths, validation, storage and text encoding, plus an end-to-end browser check.
 
 ## How the money maths works
 
-Money never passes through a floating-point number. Prices are parsed from text into whole cents, converted into micro-AED (millionths of a dirham) with BigInt, and only rounded to fils (half away from zero) when shown. 1 cent Ã— 3.6725 is exactly 36,725 micro-AED, so the USD conversion is exact. For example, 230.00 USD is 844.675 AED and displays as AED 844.68.
+Money never passes through a floating-point number. Prices are parsed from text into whole cents, converted into micro-AED (millionths of a dirham) with BigInt, and only rounded to fils (half away from zero) when shown. 1 cent × 3.6725 is exactly 36,725 micro-AED, so the USD conversion is exact. For example, 230.00 USD is 844.675 AED and displays as AED 844.68.
 
 The portfolio total is calculated from the exact values and rounded once, so in rare cases it can differ by 0.01 from the sum of the rounded rows. That is the more accurate choice.
 
@@ -34,11 +34,11 @@ Every push to `main` runs the tests and the build, then deploys to GitHub Pages 
 
 | File | What it does |
 |---|---|
-| `src/money.ts` | Parsing prices, USD â†’ AED, rounding and formatting. Pure functions. |
+| `src/money.ts` | Parsing prices, USD → AED, rounding and formatting. Pure functions. |
 | `src/portfolio.ts` | The five instruments, trade validation, merging trades into positions, totals. |
 | `src/storage.ts` | Saving and loading trades (BigInt as strings), tolerant of bad data. |
 | `src/main.ts` | The page only: reads the form, shows errors, draws the tables. |
-| `src/*.test.ts` | Unit tests. `e2e/smoke.mjs` is the browser test. |
+| `src/*.test.ts` | Unit tests, including `encoding.test.ts`, which guards against garbled text. `e2e/smoke.mjs` is the browser test. |
 
 ## What I cut
 
@@ -56,9 +56,18 @@ Every push to `main` runs the tests and the build, then deploys to GitHub Pages 
 
 ## One thing that went wrong, and how I caught it
 
-A style fix for the mobile holdings table silently did nothing. The total row was meant to get small labels ("Value", "Gain or loss", "%") on phones, but the find-and-replace command matched nothing, because the file used Unix line endings and the search text used Windows ones. The command reported no error.
+On my phone, a holding read "Emaar Properties **Â** · AED": a stray "Â" in front of the "·". Some quick edits had been made with Windows PowerShell, which read the UTF-8 files as Windows-1252 and saved them back, garbling every "·" (and "—" and "→" broke the same way). The 28 tests all passed, because they check numbers, not text. The browser test hadn't caught it either.
 
-I caught it because every edit is checked by searching for the new line afterwards: only 1 of the 2 expected matches came back. The browser test's mobile screenshot confirmed it, with the total row's numbers shown without labels. I re-applied the change with an exact-match edit, added a `.gitattributes` file so the repository always uses one line-ending format, and re-ran the browser test.
+How I fixed it, test first:
+
+1. Added a test that scans every source file for these garbled patterns and for byte-order marks. It failed and listed the three damaged files.
+2. Repaired the files with a script that writes UTF-8 correctly, and the test passed.
+3. Added a browser check that the holding's description reads exactly "Emaar Properties · paid AED 1,250.00".
+4. From then on, files were only edited with tools that keep UTF-8, and `.gitattributes` fixes the line endings.
+
+Both checks run in CI before every deploy, so this cannot ship again unnoticed.
+
+Earlier, the same cause showed up as a quieter problem: a find-and-replace matched nothing because of Windows vs Unix line endings. It was caught because each edit is searched for afterwards.
 
 ## How I worked with Claude Code
 

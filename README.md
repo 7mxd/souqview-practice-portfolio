@@ -74,6 +74,8 @@ Earlier, the same cause showed up as a quieter problem: a find-and-replace match
 
 Company logos come from Wikimedia Commons and are cropped to their symbol (`public/logos/`). They belong to their owners and are used only to identify each company. ADNOC Gas is shown with the ADNOC parent logo.
 
+The app's own mark (rising bars with a seedling) started as a Gemini concept from a prompt written in this session. It was redrawn by hand as a small SVG (`public/favicon.svg`) in the app's palette, so it stays sharp from the 16 px browser tab to the 180 px home-screen icon (`e2e/make-icons.mjs`).
+
 ## How I worked with Claude Code
 
 The prompts are in [`docs/prompt-history.md`](docs/prompt-history.md). The money maths was written test-first: each test was run and seen to fail before the code existed.

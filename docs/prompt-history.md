@@ -92,3 +92,6 @@ _Answer to Claude's optional idea: a bar showing each holding's share of the por
 > - Add few "What I would do next" including dark mode, Arabic language, …
 > - When done, let me know and draft the email.
 
+## Prompt 23
+> Send me the log on telegram.
+

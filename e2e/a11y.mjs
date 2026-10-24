@@ -33,6 +33,8 @@ for (const [width, height, tag] of [[1280, 900, 'desktop'], [390, 844, 'mobile']
   };
   for (const [state, go] of Object.entries(states)) {
     await go();
+    // Measure the settled page, not a frame in the middle of a fade
+    await page.evaluate(() => Promise.all(document.getAnimations().map(a => a.finished.catch(() => {}))));
     const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
     for (const v of r.violations) {
       failed++;

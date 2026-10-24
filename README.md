@@ -10,6 +10,7 @@ A small web app where a first-time investor adds a few practice trades and sees 
 - **Holdings:** one row per stock (several trades in the same stock are merged), with what was paid, value and gain or loss in AED and as a percentage, plus the portfolio total. A holding with several trades has a "2 trades" toggle that lists each trade on its own (shares, buy price, date, value, gain or loss and return), and each one can be removed separately. Each holding can also be removed as a whole, or everything can be cleared. Every change shows a short confirmation, and removals offer **Undo** for 8 seconds instead of a confirm pop-up.
 - **Sample prices from the brief:** EMAAR 14.00, FAB 15.50, ADNOCGAS 3.40 (AED); AAPL 230.00, MSFT 430.00 (USD). US stocks are entered in dollars and everything is shown in AED at 3.6725.
 - **Saved between visits** in browser storage. Corrupted or blocked storage shows a message instead of breaking the page.
+- **Motion with a purpose:** short (120–260 ms), ease-out, and only where something changes. Buttons respond when pressed, the drop-down and the list of trades open smoothly, a newly added holding glows once, and totals that changed brighten briefly. Nothing moves on page load, and nothing moves at all when the device asks to reduce motion (checked by `e2e/motion.mjs`).
 - **Accessible:** checked with axe-core against WCAG 2.2 AA in four states (empty, errors, list open, with trades) on desktop and phone, with no issues. Every control is at least 44 × 44 px on a phone. Gains and losses carry a + or − sign, not only a colour.
 - **Tests:** 32 unit tests for the money maths, validation, storage and text encoding, plus an end-to-end browser check and the accessibility audit. All of them run in CI before every deploy.
 
@@ -30,7 +31,7 @@ npm run e2e      # browser smoke test; run `npx vite preview --port 4173` first
 node e2e/a11y.mjs  # accessibility audit (WCAG 2.2 AA + touch targets), same server
 ```
 
-Every push to `main` runs the unit tests, the build, the browser test and the accessibility audit, and deploys to GitHub Pages only if all of them pass (`.github/workflows/deploy.yml`).
+Every push to `main` runs the unit tests, the build, the browser test, the accessibility audit and the motion check, and deploys to GitHub Pages only if all of them pass (`.github/workflows/deploy.yml`).
 
 ## Code map
 
@@ -43,7 +44,9 @@ Every push to `main` runs the unit tests, the build, the browser test and the ac
 | `src/stock-select.ts` | The stock drop-down with logos (ARIA select-only combobox, since a native `<select>` cannot show images). |
 | `src/*.test.ts` | Unit tests, including `encoding.test.ts`, which guards against garbled text. |
 | `e2e/smoke.mjs` | Browser test: errors, drop-down by mouse and keyboard, logos, totals, each trade, Undo, reload. |
-| `e2e/a11y.mjs` | Accessibility audit with axe-core, plus the 44 px touch-target check. |
+| `e2e/a11y.mjs` | Accessibility audit with axe-core (after animations settle), plus the 44 px touch-target check. |
+| `e2e/motion.mjs` | Checks the animations run, and that none run with reduced motion on. |
+| `docs/PRODUCT.md` | Short product brief (users, tone, constraints) that guided the design decisions. |
 | `e2e/make-icons.mjs`, `e2e/shots.mjs` | Helpers: the home-screen icon, and screenshots for visual checks. |
 
 ## What I cut

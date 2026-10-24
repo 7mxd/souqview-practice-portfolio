@@ -130,6 +130,7 @@ form.addEventListener('submit', e => {
     return;
   }
   const t = result.trade;
+  justAdded = t.symbol;
   changeTrades([...trades, t], `Added ${t.shares.toLocaleString('en')} ${t.symbol}.`, false);
   form.reset();
   stock.reset();
@@ -196,23 +197,36 @@ function tradesRow(symbol: string, id: string): HTMLTableRowElement {
   return tr;
 }
 
+let justAdded = ''; // symbol of the trade just added, so its row can glow once
+
+/** Sets a summary figure; if the text changed (not on first draw), it brightens briefly. */
+function setFigure(el: HTMLElement, text: string, className: string) {
+  const changed = el.textContent !== text && el.dataset.drawn === '1';
+  el.textContent = text;
+  el.className = className;
+  el.dataset.drawn = '1';
+  if (changed) {
+    void el.offsetWidth; // restart the animation if it is already running
+    el.classList.add('changed');
+  }
+}
+
 function render() {
   const { positions, totals } = buildPortfolio(trades);
 
-  $('total-value').textContent = formatAed(totals.valueMicro);
-  const gain = $('total-gain');
-  gain.textContent = formatAed(totals.gainMicro, { signed: true });
-  gain.className = `num ${toneClass(totals.gainMicro)}`;
-  const pct = $('total-pct');
-  pct.textContent = formatPct(totals.gainMicro, totals.costMicro);
-  pct.className = `num ${toneClass(totals.gainMicro)}`;
-  $('total-cost').textContent = formatAed(totals.costMicro);
+  setFigure($('total-value'), formatAed(totals.valueMicro), 'big');
+  setFigure($('total-gain'), formatAed(totals.gainMicro, { signed: true }), `num ${toneClass(totals.gainMicro)}`);
+  setFigure($('total-pct'), formatPct(totals.gainMicro, totals.costMicro), `num ${toneClass(totals.gainMicro)}`);
+  setFigure($('total-cost'), formatAed(totals.costMicro), 'num');
 
   const table = $<HTMLTableElement>('holdings');
   const tbody = table.tBodies[0];
+  const added = justAdded;
+  justAdded = '';
   tbody.replaceChildren(
     ...positions.flatMap(p => {
       const tr = document.createElement('tr');
+      if (p.symbol === added) tr.className = 'just-added';
       const name = document.createElement('th');
       name.scope = 'row';
       name.innerHTML = '<span class="stock-cell"><img class="logo" alt="" width="32" height="32"><span><span class="sym"></span><span class="name"></span></span></span>';

@@ -76,3 +76,6 @@ _Sent while Claude was working on prompt 16._
 ## Prompt 18
 > The README is now consistent with the changes?
 
+## Prompt 19 — Motion
+> Can we add some motion without affecting the user experience negatively? Instead we want to enhance the UI to be more good-looking and attractive.
+

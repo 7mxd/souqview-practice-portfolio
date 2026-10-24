@@ -167,6 +167,40 @@ input[aria-invalid='true'] { border-color: var(--down); background: #fdf5f5; }
 .pill-button:hover { background: #e8dcc0; }
 .cost-preview { margin: 0; min-height: 1.5em; color: var(--gold-deep); font-weight: 500; }
 
+/* Motion: only to show a change of state or give feedback. 120-260 ms, ease-out, no bounce.
+   Everything here is skipped for people who ask their device to reduce motion. */
+:root {
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1); /* ease-out-quart */
+  --t-fast: 120ms;
+  --t-base: 200ms;
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* Feedback: controls answer the finger or cursor */
+  .primary, .pill-button, .trades-toggle, .select-button, .link, .toast-undo, .select-option {
+    transition: background-color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out),
+      color var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out), transform var(--t-fast) var(--ease-out);
+  }
+  .primary:active, .pill-button:active, .trades-toggle:active, .select-button:active { transform: scale(0.98); }
+  input { transition: border-color var(--t-fast) var(--ease-out), background-color var(--t-fast) var(--ease-out); }
+
+  /* State: the chevron and the trades toggle turn as their lists open */
+  .select-chevron, .trades-toggle::after { transition: transform var(--t-base) var(--ease-out); }
+
+  /* Reveal: the drop-down, the list of trades, and new hints arrive from where they belong */
+  .select-list:not([hidden]) { animation: drop-in var(--t-base) var(--ease-out); transform-origin: top center; }
+  .trade-list { animation: drop-in var(--t-base) var(--ease-out); }
+  .today:not([hidden]), .error:not([hidden]), .cost-preview:not(:empty) { animation: fade-in var(--t-base) var(--ease-out); }
+
+  /* Change: a trade just added glows once, and totals that changed brighten briefly */
+  .holdings tr.just-added { animation: added 900ms var(--ease-out); }
+  .changed { animation: changed 600ms var(--ease-out); }
+}
+@keyframes drop-in { from { opacity: 0; transform: translateY(-6px) scale(0.985); } }
+@keyframes fade-in { from { opacity: 0; transform: translateY(-2px); } }
+@keyframes added { from { background-color: #f1e3bf; } to { background-color: transparent; } }
+@keyframes changed { 30% { background-color: #f1e0b4; box-shadow: 0 0 0 4px #f1e0b4; } }
+.summary .big, .summary .num { justify-self: start; border-radius: 4px; }
+
 @media (max-width: 560px) {
   .opt-price { font-size: 13px; }
   .page { padding: 20px 14px 40px; }

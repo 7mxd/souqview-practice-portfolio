@@ -13,7 +13,7 @@ A small web app where a first-time investor adds a few practice trades and sees 
 - **Saved between visits** in browser storage. Corrupted or blocked storage shows a message instead of breaking the page.
 - **Motion with a purpose:** short (120–260 ms), ease-out, and only where something changes. Buttons respond when pressed, the drop-down and the list of trades open smoothly, the mix bar wipes in once and then slides as shares change, a newly added holding glows once, and totals that changed brighten briefly. Nothing moves on page load, and nothing moves at all when the device asks to reduce motion (checked by `e2e/motion.mjs`).
 - **Accessible:** checked with axe-core against WCAG 2.2 AA in four states (empty, errors, list open, with trades) on desktop and phone, with no issues. Every control is at least 44 × 44 px on a phone. Gains and losses carry a + or − sign, not only a colour.
-- **Tests:** 36 unit tests for the money maths, validation, storage and text encoding, plus an end-to-end browser check and the accessibility audit. All of them run in CI before every deploy.
+- **Tests:** 36 unit tests for the money maths, validation, the portfolio mix, storage and text encoding, plus an end-to-end browser test, the accessibility audit and the motion check. All of them run in CI before every deploy.
 
 ## How the money maths works
 
@@ -29,7 +29,8 @@ npm run dev      # local app
 npm test         # unit tests (Vitest)
 npm run build    # type-check and build
 npm run e2e      # browser smoke test; run `npx vite preview --port 4173` first
-node e2e/a11y.mjs  # accessibility audit (WCAG 2.2 AA + touch targets), same server
+node e2e/a11y.mjs    # accessibility audit (WCAG 2.2 AA + touch targets), same server
+node e2e/motion.mjs  # animations run, and none run with reduced motion, same server
 ```
 
 Every push to `main` runs the unit tests, the build, the browser test, the accessibility audit and the motion check, and deploys to GitHub Pages only if all of them pass (`.github/workflows/deploy.yml`).
@@ -41,10 +42,10 @@ Every push to `main` runs the unit tests, the build, the browser test, the acces
 | `src/money.ts` | Parsing prices, USD → AED, rounding and formatting. Pure functions. |
 | `src/portfolio.ts` | The five instruments, trade validation, merging trades into positions, each trade's own result, totals, the portfolio mix, the cost preview. |
 | `src/storage.ts` | Saving and loading trades (BigInt as strings), tolerant of bad data. |
-| `src/main.ts` | The page only: reads the form, shows errors, draws the holdings and each trade, confirmations and Undo. |
+| `src/main.ts` | The page only: reads the form, shows errors, draws the summary, the mix bar, the holdings and each trade, confirmations and Undo. |
 | `src/stock-select.ts` | The stock drop-down with logos (ARIA select-only combobox, since a native `<select>` cannot show images). |
 | `src/*.test.ts` | Unit tests, including `encoding.test.ts`, which guards against garbled text. |
-| `e2e/smoke.mjs` | Browser test: errors, drop-down by mouse and keyboard, logos, totals, each trade, Undo, reload. |
+| `e2e/smoke.mjs` | Browser test: errors, drop-down by mouse and keyboard, logos, totals, portfolio mix, each trade, Undo, reload. |
 | `e2e/a11y.mjs` | Accessibility audit with axe-core (after animations settle), plus the 44 px touch-target check. |
 | `e2e/motion.mjs` | Checks the animations run, and that none run with reduced motion on. |
 | `docs/PRODUCT.md` | Short product brief (users, tone, constraints) that guided the design decisions. |
@@ -54,15 +55,20 @@ Every push to `main` runs the unit tests, the build, the browser test, the acces
 
 - Selling, cash balance and fees. Trades are buys only, which keeps the maths clear for a first-time investor.
 - Live prices. The brief asks for fixed sample prices.
-- Fractional shares, Arabic and right-to-left layout, accounts and sync across devices.
-- A framework. Plain TypeScript keeps the app at about 5 KB of JavaScript and 3 KB of CSS, gzipped.
+- Fractional shares, Arabic and right-to-left layout, dark mode, accounts and sync across devices.
+- A framework. Plain TypeScript keeps the app at about 6 KB of JavaScript and 3 KB of CSS, gzipped.
 
 ## What I would do next
 
-1. Arabic and right-to-left, with Arabic numerals as an option.
-2. Sell trades and a cash balance, so gains can be realised.
-3. A simple chart of the portfolio over time (it needs price history, which the brief doesn't have).
-4. A short first-visit hint that explains buy price vs. today's price.
+In the order I would build them:
+
+1. **Arabic and right-to-left.** Full Arabic text with a mirrored layout and a choice of Arabic or Western numerals, since most first-time investors in the UAE read Arabic first. The layout already uses one font and simple rows, so mirroring is mostly CSS logical properties.
+2. **Dark mode** that follows the phone's own setting, with every colour re-checked for contrast (the gain and loss colours especially) and the accessibility audit run in both modes.
+3. **Selling and a cash balance,** so a trade can be closed and a gain becomes "realised". This is the next idea a beginner needs after "how is it doing?".
+4. **A first-visit hint** that explains buy price vs. today's price in one sentence, since that is what makes gain or loss meaningful.
+5. **A chart over time** of the portfolio's value. It needs price history, which the brief doesn't include.
+6. **Live prices** through a small server that keeps the data-provider key secret, with a clear "as of" time and a "market closed" label. They would replace the fixed sample prices only outside a test like this.
+7. **Sync across devices** with an account, instead of browser storage only.
 
 ## One thing that went wrong, and how I caught it
 
@@ -87,4 +93,4 @@ The app's own mark (rising bars with a seedling) started as a Gemini concept, fr
 
 ## How I worked with Claude Code
 
-The prompts are in [`docs/prompt-history.md`](docs/prompt-history.md). The money maths, the cost preview and each trade's result were written test-first: each test was run and seen to fail before the code existed. Most design changes came from me testing the live app on my phone and sending screenshots back. Claude checked each request against the brief before building it.
+The prompts are in [`docs/prompt-history.md`](docs/prompt-history.md). The money maths, the cost preview, each trade's result and the portfolio mix were written test-first: each test was run and seen to fail before the code existed. Most design changes came from me testing the live app on my phone and sending screenshots back. Claude checked each request against the brief before building it.

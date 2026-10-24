@@ -83,3 +83,12 @@ _Sent while Claude was working on prompt 16._
 _Answer to Claude's optional idea: a bar showing each holding's share of the portfolio._
 > Go ahead with the optional idea!
 
+## Prompt 21
+> Do you suggest adding dark mode button?
+
+## Prompt 22 — Finish up
+> Yes, go ahead:
+> - Ensure the README is up-to-date.
+> - Add few "What I would do next" including dark mode, Arabic language, …
+> - When done, let me know and draft the email.
+

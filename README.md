@@ -6,7 +6,7 @@ A small web app where a first-time investor adds a few practice trades and sees 
 
 ## What I built
 
-- **Add a practice trade:** pick one of the five sample stocks from a list showing name, exchange and price. The buy price fills in with the sample price and can be changed. A line shows what the trade will cost in AED before you add it. Shares and price get a clear message under the field when something is wrong (decimals in shares, a price with three decimals, and so on).
+- **Add a practice trade:** pick one of the five sample stocks from a drop-down with each company's logo, name, exchange and price. It works fully from the keyboard (arrows, Enter, Escape, type a letter to jump) and with screen readers. The buy price fills in with the sample price and can be changed. A line shows what the trade will cost in AED before you add it. Shares and price get a clear message under the field when something is wrong (decimals in shares, a price with three decimals, and so on).
 - **Holdings:** one row per stock (several trades in the same stock are merged), with what was paid, value and gain or loss in AED and as a percentage, plus the portfolio total. Each holding can be removed (it asks first when it holds more than one trade), or everything can be cleared.
 - **Sample prices from the brief:** EMAAR 14.00, FAB 15.50, ADNOCGAS 3.40 (AED); AAPL 230.00, MSFT 430.00 (USD). US stocks are entered in dollars and everything is shown in AED at 3.6725.
 - **Saved between visits** in browser storage. Corrupted or blocked storage shows a message instead of breaking the page.
@@ -38,6 +38,7 @@ Every push to `main` runs the tests and the build, then deploys to GitHub Pages 
 | `src/portfolio.ts` | The five instruments, trade validation, merging trades into positions, totals. |
 | `src/storage.ts` | Saving and loading trades (BigInt as strings), tolerant of bad data. |
 | `src/main.ts` | The page only: reads the form, shows errors, draws the tables. |
+| `src/stock-select.ts` | The stock drop-down with logos (ARIA select-only combobox, since a native `<select>` cannot show images). |
 | `src/*.test.ts` | Unit tests, including `encoding.test.ts`, which guards against garbled text. `e2e/smoke.mjs` is the browser test. |
 
 ## What I cut
@@ -68,6 +69,10 @@ How I fixed it, test first:
 Both checks run in CI before every deploy, so this cannot ship again unnoticed.
 
 Earlier, the same cause showed up as a quieter problem: a find-and-replace matched nothing because of Windows vs Unix line endings. It was caught because each edit is searched for afterwards.
+
+## Logos
+
+Company logos come from Wikimedia Commons and are cropped to their symbol (`public/logos/`). They belong to their owners and are used only to identify each company. ADNOC Gas is shown with the ADNOC parent logo.
 
 ## How I worked with Claude Code
 

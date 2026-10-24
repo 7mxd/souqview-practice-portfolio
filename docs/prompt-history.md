@@ -38,3 +38,7 @@ _With three iPhone screenshots of the live app._
 >
 > - Ensure that my points doesn't go against the requirements.
 
+## Prompt 9 — Drop-down with logos
+> - Can we have a drop list instead?
+> - Also, a company logo beside each corresponding stock?
+

@@ -1,14 +1,14 @@
 // The page: reads the form, keeps the list of trades, and draws the portfolio.
 // All maths lives in money.ts / portfolio.ts (tested); this file only wires up the DOM.
 import './style.css';
-import { formatAed, formatPct, toAed } from './money';
+import { formatAed, formatPct } from './money';
 import { buildPortfolio, findInstrument, INSTRUMENTS, previewCost, validateTrade, type FieldErrors, type Trade, type TradeInput } from './portfolio';
+import { createStockSelect, logoUrl, priceText } from './stock-select';
 import { loadTrades, saveTrades } from './storage';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const form = $<HTMLFormElement>('trade-form');
-const stockList = $<HTMLDivElement>('stock-list');
 const fields = { shares: $<HTMLInputElement>('shares'), price: $<HTMLInputElement>('price') };
 const notice = $<HTMLDivElement>('notice');
 const preview = $<HTMLParagraphElement>('cost-preview');
@@ -26,32 +26,23 @@ function persist() {
   if (!saveTrades(localStorage, trades).ok) showNotice('This browser is not letting the page save, so trades will be lost when you leave.');
 }
 
-const priceText = (cents: bigint) => (Number(cents) / 100).toFixed(2);
-
-// Stock picker: one radio option per sample stock, showing its price
-for (const inst of INSTRUMENTS) {
-  const label = document.createElement('label');
-  label.className = 'stock';
-  label.innerHTML = `<input type="radio" name="symbol" /><span class="stock-sym"></span><span class="stock-name"></span><span class="stock-price"></span>`;
-  const radio = label.querySelector('input')!;
-  radio.value = inst.symbol;
-  label.querySelector('.stock-sym')!.textContent = inst.symbol;
-  label.querySelector('.stock-name')!.textContent = `${inst.name} · ${inst.exchange}`;
-  const aed = inst.currency === 'USD' ? ` ≈ ${formatAed(toAed(inst.priceCents, 'USD'))}` : '';
-  label.querySelector('.stock-price')!.textContent = `${inst.currency} ${priceText(inst.priceCents)}${aed}`;
-  radio.addEventListener('change', () => {
-    // Fill in the sample price; the user can still change it.
+// Stock drop-down with logos; picking a stock fills in its sample price (still editable).
+const stock = createStockSelect({
+  button: $<HTMLButtonElement>('stock-button'),
+  listbox: $<HTMLUListElement>('stock-listbox'),
+  valueEl: $('stock-value'),
+  instruments: INSTRUMENTS,
+  onChange: inst => {
     fields.price.value = priceText(inst.priceCents);
     $<HTMLSpanElement>('price-ccy').textContent = `(${inst.currency})`;
     clearError('symbol');
     clearError('price');
     updatePreview();
     fields.shares.focus();
-  });
-  stockList.append(label);
-}
+  },
+});
 
-const selectedSymbol = () => stockList.querySelector<HTMLInputElement>('input:checked')?.value ?? '';
+const selectedSymbol = () => stock.value();
 const currentInput = (): TradeInput => ({ symbol: selectedSymbol(), shares: fields.shares.value, price: fields.price.value });
 
 function updatePreview() {
@@ -68,12 +59,14 @@ function setError(name: keyof TradeInput, message: string) {
   const el = $<HTMLParagraphElement>(`${name}-error`);
   el.textContent = message;
   el.hidden = false;
-  if (name !== 'symbol') fields[name].setAttribute('aria-invalid', 'true');
+  if (name === 'symbol') stock.setInvalid(true);
+  else fields[name].setAttribute('aria-invalid', 'true');
 }
 
 function clearError(name: keyof TradeInput) {
   $<HTMLParagraphElement>(`${name}-error`).hidden = true;
-  if (name !== 'symbol') fields[name].removeAttribute('aria-invalid');
+  if (name === 'symbol') stock.setInvalid(false);
+  else fields[name].removeAttribute('aria-invalid');
 }
 
 for (const name of ['shares', 'price'] as const) {
@@ -92,16 +85,17 @@ form.addEventListener('submit', e => {
     const order: (keyof TradeInput)[] = ['symbol', 'shares', 'price'];
     for (const name of order) if (errors[name]) setError(name, errors[name]!);
     const first = order.find(n => errors[n])!;
-    (first === 'symbol' ? stockList.querySelector<HTMLInputElement>('input')! : fields[first]).focus();
+    (first === 'symbol' ? stock : fields[first]).focus();
     return;
   }
   trades = [...trades, result.trade];
   persist();
   form.reset();
+  stock.reset();
   $<HTMLSpanElement>('price-ccy').textContent = '(AED)';
   updatePreview();
   render();
-  stockList.querySelector<HTMLInputElement>('input')!.focus();
+  stock.focus();
 });
 
 $<HTMLButtonElement>('clear-all').addEventListener('click', () => {
@@ -140,7 +134,8 @@ function render() {
       const tr = document.createElement('tr');
       const name = document.createElement('th');
       name.scope = 'row';
-      name.innerHTML = '<span class="sym"></span><span class="name"></span>';
+      name.innerHTML = '<span class="stock-cell"><img class="logo" alt="" width="32" height="32"><span><span class="sym"></span><span class="name"></span></span></span>';
+      name.querySelector('img')!.src = logoUrl(p.symbol);
       name.querySelector('.sym')!.textContent = p.symbol;
       const count = trades.filter(t => t.symbol === p.symbol).length;
       name.querySelector('.name')!.textContent =

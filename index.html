@@ -36,11 +36,17 @@
       <section class="card" aria-labelledby="add-title">
         <h2 id="add-title">Add a practice trade</h2>
         <form id="trade-form" novalidate>
-          <fieldset class="field" aria-describedby="symbol-error">
-            <legend>Stock</legend>
-            <div class="stock-list" id="stock-list"></div>
+          <div class="field">
+            <span class="label-text" id="stock-label">Stock</span>
+            <div class="select" id="stock-select">
+              <button type="button" id="stock-button" class="select-button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="stock-label stock-button" aria-describedby="symbol-error">
+                <span class="select-value" id="stock-value"><span class="select-placeholder">Choose a stock</span></span>
+                <span class="select-chevron" aria-hidden="true"></span>
+              </button>
+              <ul id="stock-listbox" class="select-list" role="listbox" tabindex="-1" aria-labelledby="stock-label" hidden></ul>
+            </div>
             <p id="symbol-error" class="error" hidden></p>
-          </fieldset>
+          </div>
           <div class="field-row">
             <div class="field">
               <label for="shares">Number of shares</label>

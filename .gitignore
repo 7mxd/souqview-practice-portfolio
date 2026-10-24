@@ -25,3 +25,4 @@ dist-ssr
 
 e2e/*.png
 .impeccable/
+e2e/shot-*.png

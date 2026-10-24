@@ -12,13 +12,31 @@ page.on('console', m => m.type() === 'error' && errors.push(m.text()));
 
 await page.goto(URL);
 const text = id => page.locator(`#${id}`).innerText();
+const pickStock = async symbol => {
+  await page.click('#stock-button');
+  await page.click(`#stock-option-${symbol}`);
+};
+
+// 0. Drop-down: all five logos load, and it works from the keyboard
+await page.click('#stock-button');
+const logos = await page.locator('#stock-listbox img').evaluateAll(imgs => imgs.map(i => i.complete && i.naturalWidth > 0));
+assert.deepEqual(logos, [true, true, true, true, true], 'every logo loads');
+await page.keyboard.press('Escape');
+assert.equal(await page.getAttribute('#stock-button', 'aria-expanded'), 'false');
+await page.focus('#stock-button');
+await page.keyboard.press('ArrowDown'); // opens
+await page.keyboard.press('m'); // jumps to MSFT
+await page.keyboard.press('Enter');
+assert.match(await text('stock-value'), /MSFT/);
+assert.equal(await page.inputValue('#price'), '430.00');
+await page.reload();
 
 // 1. Invalid input shows clear messages and adds nothing
 await page.click('button[type=submit]');
 assert.equal(await text('symbol-error'), 'Choose a symbol.');
 assert.match(await text('shares-error'), /Enter how many shares/);
 assert.match(await text('price-error'), /Enter the price you paid/);
-await page.check('input[name=symbol][value=FAB]');
+await pickStock('FAB');
 assert.equal(await page.inputValue('#price'), '15.50'); // filled with the sample price
 await page.fill('#shares', '2.5');
 await page.fill('#price', '1.234');
@@ -28,13 +46,13 @@ assert.match(await text('price-error'), /up to 2 decimals/);
 assert.equal(await page.locator('#holdings').isHidden(), true);
 
 // 2. Add an AED and a USD trade; the buy price can be changed after autofill
-await page.check('input[name=symbol][value=EMAAR]');
+await pickStock('EMAAR');
 assert.equal(await page.inputValue('#price'), '14.00');
 await page.fill('#shares', '100');
 await page.fill('#price', '12.50');
 assert.equal(await text('cost-preview'), 'This trade costs AED 1,250.00.');
 await page.click('button[type=submit]');
-await page.check('input[name=symbol][value=AAPL]');
+await pickStock('AAPL');
 assert.match(await text('price-ccy'), /USD/);
 assert.equal(await page.inputValue('#price'), '230.00');
 await page.fill('#shares', '10');

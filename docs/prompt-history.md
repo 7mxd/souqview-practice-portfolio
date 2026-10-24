@@ -73,3 +73,6 @@ _With an iPhone screenshot of Holdings, including ADNOCGAS "over 2 trades"._
 _Sent while Claude was working on prompt 16._
 > Ensure best UI & UX are provided.
 
+## Prompt 18
+> The README is now consistent with the changes?
+

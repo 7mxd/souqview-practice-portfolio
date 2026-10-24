@@ -27,27 +27,31 @@ npm run dev      # local app
 npm test         # unit tests (Vitest)
 npm run build    # type-check and build
 npm run e2e      # browser smoke test; run `npx vite preview --port 4173` first
+node e2e/a11y.mjs  # accessibility audit (WCAG 2.2 AA + touch targets), same server
 ```
 
-Every push to `main` runs the tests and the build, then deploys to GitHub Pages (`.github/workflows/deploy.yml`).
+Every push to `main` runs the unit tests, the build, the browser test and the accessibility audit, and deploys to GitHub Pages only if all of them pass (`.github/workflows/deploy.yml`).
 
 ## Code map
 
 | File | What it does |
 |---|---|
 | `src/money.ts` | Parsing prices, USD → AED, rounding and formatting. Pure functions. |
-| `src/portfolio.ts` | The five instruments, trade validation, merging trades into positions, totals. |
+| `src/portfolio.ts` | The five instruments, trade validation, merging trades into positions, each trade's own result, totals, the cost preview. |
 | `src/storage.ts` | Saving and loading trades (BigInt as strings), tolerant of bad data. |
-| `src/main.ts` | The page only: reads the form, shows errors, draws the tables. |
+| `src/main.ts` | The page only: reads the form, shows errors, draws the holdings and each trade, confirmations and Undo. |
 | `src/stock-select.ts` | The stock drop-down with logos (ARIA select-only combobox, since a native `<select>` cannot show images). |
-| `src/*.test.ts` | Unit tests, including `encoding.test.ts`, which guards against garbled text. `e2e/smoke.mjs` is the browser test. |
+| `src/*.test.ts` | Unit tests, including `encoding.test.ts`, which guards against garbled text. |
+| `e2e/smoke.mjs` | Browser test: errors, drop-down by mouse and keyboard, logos, totals, each trade, Undo, reload. |
+| `e2e/a11y.mjs` | Accessibility audit with axe-core, plus the 44 px touch-target check. |
+| `e2e/make-icons.mjs`, `e2e/shots.mjs` | Helpers: the home-screen icon, and screenshots for visual checks. |
 
 ## What I cut
 
 - Selling, cash balance and fees. Trades are buys only, which keeps the maths clear for a first-time investor.
 - Live prices. The brief asks for fixed sample prices.
 - Fractional shares, Arabic and right-to-left layout, accounts and sync across devices.
-- A framework. Plain TypeScript keeps the app at about 8 KB of JavaScript, gzipped.
+- A framework. Plain TypeScript keeps the app at about 5 KB of JavaScript and 3 KB of CSS, gzipped.
 
 ## What I would do next
 
@@ -65,9 +69,9 @@ How I fixed it, test first:
 1. Added a test that scans every source file for these garbled patterns and for byte-order marks. It failed and listed the three damaged files.
 2. Repaired the files with a script that writes UTF-8 correctly, and the test passed.
 3. Added a browser check that the holding's description reads exactly "Emaar Properties · paid AED 1,250.00".
-4. From then on, files were only edited with tools that keep UTF-8, and `.gitattributes` fixes the line endings.
+4. Switched to edit tools that keep UTF-8, and `.gitattributes` fixes the line endings.
 
-Both checks run in CI before every deploy, so this cannot ship again unnoticed.
+Both checks run in CI before every deploy, so this cannot ship again unnoticed. The test proved its worth later: one more PowerShell edit slipped in and garbled the README, and the encoding test failed straight away, before anything was committed.
 
 Earlier, the same cause showed up as a quieter problem: a find-and-replace matched nothing because of Windows vs Unix line endings. It was caught because each edit is searched for afterwards.
 
@@ -75,8 +79,8 @@ Earlier, the same cause showed up as a quieter problem: a find-and-replace match
 
 Company logos come from Wikimedia Commons and are cropped to their symbol (`public/logos/`). They belong to their owners and are used only to identify each company. ADNOC Gas is shown with the ADNOC parent logo.
 
-The app's own mark (rising bars with a seedling) started as a Gemini concept from a prompt written in this session. It was redrawn by hand as a small SVG (`public/favicon.svg`) in the app's palette, so it stays sharp from the 16 px browser tab to the 180 px home-screen icon (`e2e/make-icons.mjs`).
+The app's own mark (rising bars with a seedling) started as a Gemini concept, from a prompt that Claude Code wrote for me (it is in the prompt history). It was redrawn by hand as a small SVG (`public/favicon.svg`) in the app's palette, so it stays sharp from the 16 px browser tab to the 180 px home-screen icon (`e2e/make-icons.mjs`).
 
 ## How I worked with Claude Code
 
-The prompts are in [`docs/prompt-history.md`](docs/prompt-history.md). The money maths was written test-first: each test was run and seen to fail before the code existed.
+The prompts are in [`docs/prompt-history.md`](docs/prompt-history.md). The money maths, the cost preview and each trade's result were written test-first: each test was run and seen to fail before the code existed. Most design changes came from me testing the live app on my phone and sending screenshots back. Claude checked each request against the brief before building it.

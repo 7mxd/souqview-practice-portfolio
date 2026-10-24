@@ -96,3 +96,6 @@ _Answer to Claude's optional idea: a bar showing each holding's share of the por
 ## Prompt 24 — Log as PDF
 > Yes, pdf.
 
+## Prompt 25 — PDF in the repo
+> When done at it to the repo too. Update the readme if needed, and give me updated "What's left for you".
+

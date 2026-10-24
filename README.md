@@ -49,6 +49,7 @@ Every push to `main` runs the unit tests, the build, the browser test, the acces
 | `e2e/a11y.mjs` | Accessibility audit with axe-core (after animations settle), plus the 44 px touch-target check. |
 | `e2e/motion.mjs` | Checks the animations run, and that none run with reduced motion on. |
 | `docs/PRODUCT.md` | Short product brief (users, tone, constraints) that guided the design decisions. |
+| `docs/prompt-history.md`, `.pdf` | Every prompt I gave Claude Code for this build, in order; the PDF is the same log, formatted. |
 | `e2e/make-icons.mjs`, `e2e/shots.mjs` | Helpers: the home-screen icon, and screenshots for visual checks. |
 
 ## What I cut
@@ -93,4 +94,4 @@ The app's own mark (rising bars with a seedling) started as a Gemini concept, fr
 
 ## How I worked with Claude Code
 
-The prompts are in [`docs/prompt-history.md`](docs/prompt-history.md). The money maths, the cost preview, each trade's result and the portfolio mix were written test-first: each test was run and seen to fail before the code existed. Most design changes came from me testing the live app on my phone and sending screenshots back. Claude checked each request against the brief before building it.
+The prompts are in [`docs/prompt-history.md`](docs/prompt-history.md), also as a formatted PDF: [`docs/prompt-history.pdf`](docs/prompt-history.pdf). The money maths, the cost preview, each trade's result and the portfolio mix were written test-first: each test was run and seen to fail before the code existed. Most design changes came from me testing the live app on my phone and sending screenshots back. Claude checked each request against the brief before building it.

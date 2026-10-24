@@ -121,6 +121,24 @@ export function buildPortfolio(trades: readonly Trade[]): Portfolio {
   return { positions, totals };
 }
 
+export interface TradeResult {
+  trade: Trade;
+  costMicro: bigint;
+  valueMicro: bigint;
+  gainMicro: bigint;
+}
+
+/** Each trade in one stock valued on its own, oldest first. Uses the same maths as a holding. */
+export function tradeResults(trades: readonly Trade[], symbol: string): TradeResult[] {
+  return trades
+    .filter(t => t.symbol === symbol)
+    .sort((a, b) => a.at.localeCompare(b.at))
+    .map(t => {
+      const { costMicro, valueMicro, gainMicro } = buildPortfolio([t]).totals;
+      return { trade: t, costMicro, valueMicro, gainMicro };
+    });
+}
+
 /** What a trade will cost in micro-AED, or null until the inputs are valid. */
 export function previewCost(input: TradeInput): bigint | null {
   const r = validateTrade(input, new Date(0), 'preview');

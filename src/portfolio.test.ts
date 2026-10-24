@@ -1,5 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { buildPortfolio, previewCost, validateTrade, type Trade } from './portfolio';
+import { buildPortfolio, previewCost, tradeResults, validateTrade, type Trade } from './portfolio';
+
+describe('tradeResults', () => {
+  it('values each trade on its own, oldest first', () => {
+    // 10 ADNOCGAS at 3.00 (+4.00) and 30 at 3.25 (+4.50); together they are the holding
+    const a = { ...trade('ADNOCGAS', 10, 300n), id: 'a', at: '2026-10-24T08:00:00.000Z' };
+    const b = { ...trade('ADNOCGAS', 30, 325n), id: 'b', at: '2026-10-24T09:00:00.000Z' };
+    const rows = tradeResults([b, a, trade('FAB', 1, 1550n)], 'ADNOCGAS');
+    expect(rows.map(r => r.trade.id)).toEqual(['a', 'b']);
+    expect(rows[0]).toMatchObject({ costMicro: 30_000_000n, valueMicro: 34_000_000n, gainMicro: 4_000_000n });
+    expect(rows[1]).toMatchObject({ costMicro: 97_500_000n, valueMicro: 102_000_000n, gainMicro: 4_500_000n });
+  });
+
+  it('adds up to the holding', () => {
+    const trades = [trade('MSFT', 2, 45000n), { ...trade('MSFT', 1, 40000n), id: 'm2' }];
+    const [pos] = buildPortfolio(trades).positions;
+    const rows = tradeResults(trades, 'MSFT');
+    expect(rows.reduce((s, r) => s + r.valueMicro, 0n)).toBe(pos.valueMicro);
+    expect(rows.reduce((s, r) => s + r.gainMicro, 0n)).toBe(pos.gainMicro);
+  });
+});
 
 describe('previewCost', () => {
   it('shows what a trade will cost in AED before it is added', () => {

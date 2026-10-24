@@ -2,7 +2,7 @@
 // All maths lives in money.ts / portfolio.ts (tested); this file only wires up the DOM.
 import './style.css';
 import { formatAed, formatPct } from './money';
-import { buildPortfolio, findInstrument, INSTRUMENTS, previewCost, validateTrade, type FieldErrors, type Trade, type TradeInput } from './portfolio';
+import { buildPortfolio, findInstrument, INSTRUMENTS, previewCost, tradeResults, validateTrade, type FieldErrors, type Trade, type TradeInput } from './portfolio';
 import { createStockSelect, logoUrl, priceText } from './stock-select';
 import { loadTrades, saveTrades } from './storage';
 
@@ -24,6 +24,38 @@ function showNotice(text: string) {
 
 function persist() {
   if (!saveTrades(localStorage, trades).ok) showNotice('This browser is not letting the page save, so trades will be lost when you leave.');
+}
+
+// One toast at a time: confirms a change and, for removals, offers Undo instead of a confirm pop-up.
+const toast = $<HTMLDivElement>('toast');
+let toastTimer: number | undefined;
+function showToast(message: string, undo?: () => void) {
+  clearTimeout(toastTimer);
+  $('toast-text').textContent = message;
+  const btn = $<HTMLButtonElement>('toast-undo');
+  btn.hidden = !undo;
+  btn.onclick = () => {
+    undo?.();
+    hideToast();
+  };
+  toast.hidden = false;
+  toastTimer = window.setTimeout(hideToast, undo ? 8000 : 4000);
+}
+function hideToast() {
+  toast.hidden = true;
+}
+
+/** Applies a change to the trade list, and offers Undo that restores the previous list. */
+function changeTrades(next: Trade[], message: string, undoable: boolean) {
+  const before = trades;
+  trades = next;
+  persist();
+  render();
+  showToast(message, undoable ? () => {
+    trades = before;
+    persist();
+    render();
+  } : undefined);
 }
 
 // Stock drop-down with logos; picking a stock fills in its sample price (still editable).
@@ -97,22 +129,18 @@ form.addEventListener('submit', e => {
     (first === 'symbol' ? stock : fields[first]).focus();
     return;
   }
-  trades = [...trades, result.trade];
-  persist();
+  const t = result.trade;
+  changeTrades([...trades, t], `Added ${t.shares.toLocaleString('en')} ${t.symbol}.`, false);
   form.reset();
   stock.reset();
   $<HTMLSpanElement>('price-ccy').textContent = '(AED)';
   $('today').hidden = true;
   updatePreview();
-  render();
   stock.focus();
 });
 
 $<HTMLButtonElement>('clear-all').addEventListener('click', () => {
-  if (!confirm('Remove all practice trades?')) return;
-  trades = [];
-  persist();
-  render();
+  changeTrades([], 'All trades removed.', true);
 });
 
 const toneClass = (n: bigint) => (n > 0n ? 'up' : n < 0n ? 'down' : '');
@@ -123,6 +151,49 @@ function cell(text: string, className = '', label = '') {
   if (className) td.className = className;
   if (label) td.dataset.label = label;
   return td;
+}
+
+const expanded = new Set<string>(); // holdings whose individual trades are shown
+
+const tradeDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).replace(' ', ' ');
+
+/** A row under a holding listing each trade in it, with its own result and Remove. */
+function tradesRow(symbol: string, id: string): HTMLTableRowElement {
+  const inst = findInstrument(symbol)!;
+  const tr = document.createElement('tr');
+  tr.className = 'trades-row';
+  const td = document.createElement('td');
+  td.colSpan = 6;
+  const list = document.createElement('ul');
+  list.className = 'trade-list';
+  list.id = id;
+  list.setAttribute('aria-label', `${symbol} trades`);
+  for (const r of tradeResults(trades, symbol)) {
+    const li = document.createElement('li');
+    const what = document.createElement('span');
+    what.className = 'trade-what';
+    what.textContent = `${r.trade.shares.toLocaleString('en')} at ${inst.currency} ${priceText(r.trade.priceCents)} · ${tradeDate(r.trade.at)}`;
+    const value = document.createElement('span');
+    value.className = 'num';
+    value.textContent = formatAed(r.valueMicro);
+    const result = document.createElement('span');
+    result.className = `num ${toneClass(r.gainMicro)}`;
+    result.textContent = `${formatAed(r.gainMicro, { signed: true })} (${formatPct(r.gainMicro, r.costMicro)})`;
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'link';
+    remove.textContent = 'Remove';
+    remove.setAttribute('aria-label', `Remove ${what.textContent}`);
+    remove.addEventListener('click', () => {
+      changeTrades(trades.filter(t => t.id !== r.trade.id), `Removed ${r.trade.shares.toLocaleString('en')} ${symbol} trade.`, true);
+    });
+    li.append(what, value, result, remove);
+    list.append(li);
+  }
+  td.append(list);
+  tr.append(td);
+  return tr;
 }
 
 function render() {
@@ -140,7 +211,7 @@ function render() {
   const table = $<HTMLTableElement>('holdings');
   const tbody = table.tBodies[0];
   tbody.replaceChildren(
-    ...positions.map(p => {
+    ...positions.flatMap(p => {
       const tr = document.createElement('tr');
       const name = document.createElement('th');
       name.scope = 'row';
@@ -148,8 +219,27 @@ function render() {
       name.querySelector('img')!.src = logoUrl(p.symbol);
       name.querySelector('.sym')!.textContent = p.symbol;
       const count = trades.filter(t => t.symbol === p.symbol).length;
-      name.querySelector('.name')!.textContent =
-        `${p.name} · paid ${formatAed(p.costMicro)}${count > 1 ? ` over ${count} trades` : ''}`;
+      const nameLine = name.querySelector('.name')!;
+      nameLine.textContent = `${p.name} · paid ${formatAed(p.costMicro)}`;
+
+      // Several trades in one stock: a toggle shows each trade on its own
+      const isOpen = expanded.has(p.symbol);
+      const detailId = `trades-${p.symbol}`;
+      if (count > 1) {
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'trades-toggle';
+        toggle.textContent = `${count} trades`;
+        toggle.setAttribute('aria-expanded', String(isOpen));
+        toggle.setAttribute('aria-controls', detailId);
+        toggle.addEventListener('click', () => {
+          if (expanded.has(p.symbol)) expanded.delete(p.symbol);
+          else expanded.add(p.symbol);
+          render();
+          document.querySelector<HTMLButtonElement>(`[aria-controls="${detailId}"]`)?.focus();
+        });
+        nameLine.after(toggle);
+      }
 
       const action = document.createElement('td');
       action.className = 'action';
@@ -159,10 +249,7 @@ function render() {
       remove.textContent = 'Remove';
       remove.setAttribute('aria-label', `Remove ${p.symbol}`);
       remove.addEventListener('click', () => {
-        if (count > 1 && !confirm(`Remove all ${count} ${p.symbol} trades?`)) return;
-        trades = trades.filter(t => t.symbol !== p.symbol);
-        persist();
-        render();
+        changeTrades(trades.filter(t => t.symbol !== p.symbol), `Removed ${p.symbol}${count > 1 ? ` (${count} trades)` : ''}.`, true);
       });
       action.append(remove);
 
@@ -174,7 +261,8 @@ function render() {
         cell(formatPct(p.gainMicro, p.costMicro), `num ${toneClass(p.gainMicro)}`, 'Return'),
         action,
       );
-      return tr;
+      if (count < 2 || !isOpen) return [tr];
+      return [tr, tradesRow(p.symbol, detailId)];
     }),
   );
   $('foot-value').textContent = formatAed(totals.valueMicro);

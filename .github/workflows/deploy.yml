@@ -26,6 +26,15 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Browser test and accessibility audit
+        env:
+          CI: 'true'
+        run: |
+          npx playwright install --with-deps chromium
+          npx vite preview --port 4173 --strictPort &
+          npx wait-on -t 30000 http://localhost:4173/
+          node e2e/smoke.mjs
+          node e2e/a11y.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

@@ -7,7 +7,7 @@ const browser = await chromium.launch({ channel: 'msedge' });
 for (const [width, height, tag] of [[1280, 900, 'desktop'], [390, 844, 'mobile']]) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
   await page.goto(URL);
-  for (const [s, n, price] of [['EMAAR', '10', '12.80'], ['MSFT', '2', '450'], ['ADNOCGAS', '100', null]]) {
+  for (const [s, n, price] of [['EMAAR', '10', '12.80'], ['MSFT', '2', '450'], ['ADNOCGAS', '100', null], ['ADNOCGAS', '40', '3.10']]) {
     await page.click('#stock-button');
     await page.click(`#stock-option-${s}`);
     await page.fill('#shares', n);
@@ -22,6 +22,7 @@ for (const [width, height, tag] of [[1280, 900, 'desktop'], [390, 844, 'mobile']
   await page.click('#stock-button');
   await page.locator('section.card').first().screenshot({ path: `e2e/shot-${tag}-open.png` });
   await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: '2 trades' }).click();
   await page.locator('section.card').nth(1).screenshot({ path: `e2e/shot-${tag}-holdings.png` });
 }
 await browser.close();

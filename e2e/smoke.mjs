@@ -75,7 +75,32 @@ assert.equal(await text('total-value'), 'AED 9,846.75');
 // 4. Holding detail reads correctly (caught a garbled "·" once)
 assert.equal(await page.locator('#holdings tbody tr', { hasText: 'EMAAR' }).locator('.name').innerText(), 'Emaar Properties · paid AED 1,250.00');
 
-// 5. Remove a holding from the Holdings card
+// 5. Two trades in one stock: the holding combines them, and each can be seen and removed alone
+await pickStock('FAB');
+await page.fill('#shares', '10');
+await page.fill('#price', '14');
+await page.click('button[type=submit]');
+await pickStock('FAB');
+await page.fill('#shares', '30');
+await page.fill('#price', '16');
+await page.click('button[type=submit]');
+const fabRow = page.locator('#holdings tbody tr', { hasText: 'First Abu Dhabi Bank' });
+assert.match(await fabRow.innerText(), /40[\s\S]*AED 620\.00/); // 10 x 14 + 30 x 16 = 620, value 40 x 15.50 = 620
+await page.getByRole('button', { name: '2 trades' }).click();
+const fabTrades = await page.locator('#trades-FAB li').allInnerTexts();
+assert.equal(fabTrades.length, 2);
+assert.match(fabTrades[0], /10 at AED 14\.00[\s\S]*AED 155\.00[\s\S]*\+AED 15\.00 \(\+10\.71%\)/);
+assert.match(fabTrades[1], /30 at AED 16\.00[\s\S]*AED 465\.00[\s\S]*−AED 15\.00 \(−3\.13%\)/);
+await page.locator('#trades-FAB li', { hasText: '30 at' }).getByRole('button', { name: /Remove/ }).click();
+assert.equal(await text('toast-text'), 'Removed 30 FAB trade.');
+await page.click('#toast-undo'); // Undo brings it back
+assert.match(await fabRow.innerText(), /40[\s\S]*AED 620\.00/);
+await page.locator('#trades-FAB li', { hasText: '30 at' }).getByRole('button', { name: /Remove/ }).click();
+assert.match(await fabRow.innerText(), /10[\s\S]*AED 155\.00/);
+assert.equal(await page.getByRole('button', { name: /trades$/ }).count(), 0); // one trade left: no toggle
+await page.getByRole('button', { name: 'Remove FAB' }).click();
+
+// 6. Remove a holding from the Holdings card
 await page.getByRole('button', { name: 'Remove EMAAR' }).click();
 assert.equal(await text('total-value'), 'AED 8,446.75');
 

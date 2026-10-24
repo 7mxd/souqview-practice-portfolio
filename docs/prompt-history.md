@@ -52,3 +52,9 @@ _With an iPhone screenshot of a FAB holding, the "%" labels circled._
 _Answer to Claude's question on how the buy price should work._
 > Go with the approach that gives the best UX and UI, while respecting the required rules.
 
+## Prompt 12 — App logo?
+> Do you suggest having a logo or something, or not recommended?
+
+## Prompt 13
+> Yes, and if needed, you can me a prompt that I can give to Gemini to produce a logo.
+

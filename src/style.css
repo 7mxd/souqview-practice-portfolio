@@ -125,6 +125,9 @@ input[aria-invalid='true'] { border-color: var(--down); background: #fdf5f5; }
 .opt-aed { font-size: 12px; font-weight: 400; color: var(--text-2); }
 
 .stock-cell { display: flex; align-items: center; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+.brand-mark { width: 52px; height: 52px; flex: none; border-radius: 14px; box-shadow: 0 0 0 1px var(--border); }
+.brand h1 { margin: 2px 0 0; }
 .today { margin: 2px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-size: 13.5px; color: var(--gold-deep); font-weight: 500; }
 .pill-button {
   font: inherit; font-size: 13px; font-weight: 600; padding: 6px 12px; min-height: 34px; border-radius: 999px;

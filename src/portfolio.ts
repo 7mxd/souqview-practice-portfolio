@@ -139,6 +139,29 @@ export function tradeResults(trades: readonly Trade[], symbol: string): TradeRes
     });
 }
 
+export interface Share {
+  symbol: string;
+  basisPoints: number; // 1/100 of a percent: 2,500 = 25.00%
+}
+
+/** Each holding's share of today's portfolio value, largest first. Rounded so the shares
+ *  always total exactly 100.00% (largest remainder: leftover hundredths go to the biggest remainders). */
+export function allocation(positions: readonly Position[]): Share[] {
+  const total = positions.reduce((s, p) => s + p.valueMicro, 0n);
+  if (total <= 0n) return [];
+  const rows = positions.map(p => {
+    const scaled = p.valueMicro * 10_000n;
+    return { symbol: p.symbol, value: p.valueMicro, floor: scaled / total, rem: scaled % total };
+  });
+  let left = 10_000n - rows.reduce((s, r) => s + r.floor, 0n);
+  [...rows]
+    .sort((a, b) => (b.rem > a.rem ? 1 : b.rem < a.rem ? -1 : 0))
+    .forEach(r => { if (left > 0n) { r.floor += 1n; left -= 1n; } });
+  return rows
+    .sort((a, b) => (b.value > a.value ? 1 : b.value < a.value ? -1 : a.symbol.localeCompare(b.symbol)))
+    .map(r => ({ symbol: r.symbol, basisPoints: Number(r.floor) }));
+}
+
 /** What a trade will cost in micro-AED, or null until the inputs are valid. */
 export function previewCost(input: TradeInput): bigint | null {
   const r = validateTrade(input, new Date(0), 'preview');

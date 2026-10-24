@@ -8,11 +8,12 @@ A small web app where a first-time investor adds a few practice trades and sees 
 
 - **Add a practice trade:** pick one of the five sample stocks from a drop-down with each company's logo, name, exchange and price. It works fully from the keyboard (arrows, Enter, Escape, type a letter to jump) and with screen readers. You enter what you paid per share. Today's sample price is shown next to it, with a one-tap "Use today's price". The price isn't filled in automatically on purpose: prices in the brief are fixed, so the buy price is the only thing that creates a gain or loss, and autofill would make every trade show 0.00%. A line shows what the trade will cost in AED before you add it. Shares and price get a clear message under the field when something is wrong (decimals in shares, a price with three decimals, and so on).
 - **Holdings:** one row per stock (several trades in the same stock are merged), with what was paid, value and gain or loss in AED and as a percentage, plus the portfolio total. A holding with several trades has a "2 trades" toggle that lists each trade on its own (shares, buy price, date, value, gain or loss and return), and each one can be removed separately. Each holding can also be removed as a whole, or everything can be cleared. Every change shows a short confirmation, and removals offer **Undo** for 8 seconds instead of a confirm pop-up.
+- **Portfolio mix:** a bar in the summary shows each holding's share of today's value, with a legend (symbol and %), so a beginner sees at a glance how spread out the portfolio is. Shares are rounded so they always total exactly 100.00% (largest-remainder method, tested). Each stock keeps its own colour, and red and green stay reserved for loss and gain.
 - **Sample prices from the brief:** EMAAR 14.00, FAB 15.50, ADNOCGAS 3.40 (AED); AAPL 230.00, MSFT 430.00 (USD). US stocks are entered in dollars and everything is shown in AED at 3.6725.
 - **Saved between visits** in browser storage. Corrupted or blocked storage shows a message instead of breaking the page.
-- **Motion with a purpose:** short (120–260 ms), ease-out, and only where something changes. Buttons respond when pressed, the drop-down and the list of trades open smoothly, a newly added holding glows once, and totals that changed brighten briefly. Nothing moves on page load, and nothing moves at all when the device asks to reduce motion (checked by `e2e/motion.mjs`).
+- **Motion with a purpose:** short (120–260 ms), ease-out, and only where something changes. Buttons respond when pressed, the drop-down and the list of trades open smoothly, the mix bar wipes in once and then slides as shares change, a newly added holding glows once, and totals that changed brighten briefly. Nothing moves on page load, and nothing moves at all when the device asks to reduce motion (checked by `e2e/motion.mjs`).
 - **Accessible:** checked with axe-core against WCAG 2.2 AA in four states (empty, errors, list open, with trades) on desktop and phone, with no issues. Every control is at least 44 × 44 px on a phone. Gains and losses carry a + or − sign, not only a colour.
-- **Tests:** 32 unit tests for the money maths, validation, storage and text encoding, plus an end-to-end browser check and the accessibility audit. All of them run in CI before every deploy.
+- **Tests:** 36 unit tests for the money maths, validation, storage and text encoding, plus an end-to-end browser check and the accessibility audit. All of them run in CI before every deploy.
 
 ## How the money maths works
 
@@ -38,7 +39,7 @@ Every push to `main` runs the unit tests, the build, the browser test, the acces
 | File | What it does |
 |---|---|
 | `src/money.ts` | Parsing prices, USD → AED, rounding and formatting. Pure functions. |
-| `src/portfolio.ts` | The five instruments, trade validation, merging trades into positions, each trade's own result, totals, the cost preview. |
+| `src/portfolio.ts` | The five instruments, trade validation, merging trades into positions, each trade's own result, totals, the portfolio mix, the cost preview. |
 | `src/storage.ts` | Saving and loading trades (BigInt as strings), tolerant of bad data. |
 | `src/main.ts` | The page only: reads the form, shows errors, draws the holdings and each trade, confirmations and Undo. |
 | `src/stock-select.ts` | The stock drop-down with logos (ARIA select-only combobox, since a native `<select>` cannot show images). |
@@ -60,7 +61,7 @@ Every push to `main` runs the unit tests, the build, the browser test, the acces
 
 1. Arabic and right-to-left, with Arabic numerals as an option.
 2. Sell trades and a cash balance, so gains can be realised.
-3. Share of portfolio per position, and a simple chart over time.
+3. A simple chart of the portfolio over time (it needs price history, which the brief doesn't have).
 4. A short first-visit hint that explains buy price vs. today's price.
 
 ## One thing that went wrong, and how I caught it

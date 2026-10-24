@@ -1,5 +1,34 @@
 import { describe, expect, it } from 'vitest';
-import { buildPortfolio, previewCost, tradeResults, validateTrade, type Trade } from './portfolio';
+import { allocation, buildPortfolio, previewCost, tradeResults, validateTrade, type Trade } from './portfolio';
+
+describe('allocation', () => {
+  it('is 100% for a single holding', () => {
+    const { positions } = buildPortfolio([trade('FAB', 40, 100n)]);
+    expect(allocation(positions)).toEqual([{ symbol: 'FAB', basisPoints: 10_000 }]);
+  });
+
+  it("gives each holding's share of today's value, largest first", () => {
+    // EMAAR 100 x 14.00 = 1,400.00 and FAB 1 x 15.50 = 15.50, total 1,415.50
+    // 1,400 / 1,415.50 = 98.905% -> 98.90%, 15.50 / 1,415.50 = 1.095% -> 1.10%
+    const { positions } = buildPortfolio([trade('EMAAR', 100, 1250n), trade('FAB', 1, 100n)]);
+    expect(allocation(positions)).toEqual([
+      { symbol: 'EMAAR', basisPoints: 9_890 },
+      { symbol: 'FAB', basisPoints: 110 },
+    ]);
+  });
+
+  it('always adds up to exactly 100.00%', () => {
+    // Three equal holdings would be 33.333...% each: shown as 33.34 + 33.33 + 33.33
+    const equal = (symbol: string) => ({ symbol, name: '', currency: 'AED' as const, shares: 1, costMicro: 1n, valueMicro: 1n, gainMicro: 0n });
+    const a = allocation([equal('A'), equal('B'), equal('C')]);
+    expect(a.reduce((s, x) => s + x.basisPoints, 0)).toBe(10_000);
+    expect(a.map(x => x.basisPoints)).toEqual([3_334, 3_333, 3_333]);
+  });
+
+  it('is empty when there is nothing to divide', () => {
+    expect(allocation([])).toEqual([]);
+  });
+});
 
 describe('tradeResults', () => {
   it('values each trade on its own, oldest first', () => {

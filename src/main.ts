@@ -2,7 +2,7 @@
 // All maths lives in money.ts / portfolio.ts (tested); this file only wires up the DOM.
 import './style.css';
 import { formatAed, formatPct } from './money';
-import { buildPortfolio, findInstrument, INSTRUMENTS, previewCost, tradeResults, validateTrade, type FieldErrors, type Trade, type TradeInput } from './portfolio';
+import { allocation, buildPortfolio, findInstrument, INSTRUMENTS, previewCost, tradeResults, validateTrade, type FieldErrors, type Position, type Trade, type TradeInput } from './portfolio';
 import { createStockSelect, logoUrl, priceText } from './stock-select';
 import { loadTrades, saveTrades } from './storage';
 
@@ -197,6 +197,44 @@ function tradesRow(symbol: string, id: string): HTMLTableRowElement {
   return tr;
 }
 
+// One colour per stock, from the app palette (red and green stay reserved for loss and gain).
+const MIX_COLOUR: Record<string, string> = {
+  EMAAR: '#7a5a1e', FAB: '#2e9e93', ADNOCGAS: '#c39433', AAPL: '#4f5d7a', MSFT: '#a0634a',
+};
+const pctText = (bp: number) => `${Math.floor(bp / 100)}.${String(bp % 100).padStart(2, '0')}%`;
+
+/** The portfolio mix: a bar split by each holding's share of today's value, plus a legend. */
+function renderMix(positions: Position[]) {
+  const shares = allocation(positions);
+  const mix = $('mix');
+  mix.hidden = shares.length === 0;
+  if (!shares.length) return;
+
+  const bar = $('mix-bar');
+  bar.setAttribute('aria-label', `Portfolio mix: ${shares.map(s => `${s.symbol} ${pctText(s.basisPoints)}`).join(', ')}`);
+  // Reuse segments by symbol so a change in share slides instead of redrawing.
+  const existing = new Map([...bar.children].map(el => [(el as HTMLElement).dataset.symbol!, el as HTMLElement]));
+  const segments = shares.map(s => {
+    const seg = existing.get(s.symbol) ?? Object.assign(document.createElement('span'), { className: 'mix-seg' });
+    seg.dataset.symbol = s.symbol;
+    seg.style.background = MIX_COLOUR[s.symbol];
+    seg.style.flexGrow = String(s.basisPoints);
+    return seg;
+  });
+  bar.replaceChildren(...segments);
+
+  $('mix-legend').replaceChildren(
+    ...shares.map(s => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="mix-dot" aria-hidden="true"></span><span class="mix-sym"></span><span class="mix-pct num"></span>';
+      (li.querySelector('.mix-dot') as HTMLElement).style.background = MIX_COLOUR[s.symbol];
+      li.querySelector('.mix-sym')!.textContent = s.symbol;
+      li.querySelector('.mix-pct')!.textContent = pctText(s.basisPoints);
+      return li;
+    }),
+  );
+}
+
 let justAdded = ''; // symbol of the trade just added, so its row can glow once
 
 /** Sets a summary figure; if the text changed (not on first draw), it brightens briefly. */
@@ -218,6 +256,7 @@ function render() {
   setFigure($('total-gain'), formatAed(totals.gainMicro, { signed: true }), `num ${toneClass(totals.gainMicro)}`);
   setFigure($('total-pct'), formatPct(totals.gainMicro, totals.costMicro), `num ${toneClass(totals.gainMicro)}`);
   setFigure($('total-cost'), formatAed(totals.costMicro), 'num');
+  renderMix(positions);
 
   const table = $<HTMLTableElement>('holdings');
   const tbody = table.tBodies[0];

@@ -79,3 +79,7 @@ _Sent while Claude was working on prompt 16._
 ## Prompt 19 — Motion
 > Can we add some motion without affecting the user experience negatively? Instead we want to enhance the UI to be more good-looking and attractive.
 
+## Prompt 20 — Portfolio mix bar
+_Answer to Claude's optional idea: a bar showing each holding's share of the portfolio._
+> Go ahead with the optional idea!
+

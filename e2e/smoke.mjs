@@ -64,6 +64,10 @@ await page.click('button[type=submit]');
 assert.equal(await text('total-value'), 'AED 9,846.75');
 assert.equal(await text('total-gain'), '+AED 1,251.75');
 assert.equal(await text('total-pct'), '+14.56%'); // 1,251.75 / 8,595.00
+// Portfolio mix: AAPL 8,446.75 / 9,846.75 = 85.78%, EMAAR 1,400.00 / 9,846.75 = 14.22%
+const legend = (await page.locator('#mix-legend li').allInnerTexts()).map(t => t.replace(/\s+/g, ' ').trim());
+assert.deepEqual(legend, ['AAPL 85.78%', 'EMAAR 14.22%']);
+assert.match(await page.getAttribute('#mix-bar', 'aria-label'), /AAPL 85\.78%, EMAAR 14\.22%/);
 const rows = await page.locator('#holdings tbody tr').allInnerTexts();
 assert.match(rows[0], /AAPL[\s\S]*AED 8,446\.75[\s\S]*\+AED 1,101\.75[\s\S]*\+15\.00%/);
 assert.match(rows[1], /EMAAR[\s\S]*AED 1,400\.00[\s\S]*\+AED 150\.00[\s\S]*\+12\.00%/);

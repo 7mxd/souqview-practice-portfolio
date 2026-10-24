@@ -167,6 +167,17 @@ input[aria-invalid='true'] { border-color: var(--down); background: #fdf5f5; }
 .pill-button:hover { background: #e8dcc0; }
 .cost-preview { margin: 0; min-height: 1.5em; color: var(--gold-deep); font-weight: 500; }
 
+/* Portfolio mix */
+.mix { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid #2323211a; }
+.mix[hidden] { display: none; }
+.mix-bar { display: flex; gap: 3px; height: 12px; border-radius: 999px; overflow: hidden; }
+.mix-seg { flex: 1 1 0; min-width: 4px; }
+.mix-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; }
+.mix-legend li { display: flex; align-items: center; gap: 6px; }
+.mix-dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.mix-sym { font-weight: 600; }
+.mix-pct { font-weight: 400; color: var(--text-2); }
+
 /* Motion: only to show a change of state or give feedback. 120-260 ms, ease-out, no bounce.
    Everything here is skipped for people who ask their device to reduce motion. */
 :root {
@@ -194,7 +205,12 @@ input[aria-invalid='true'] { border-color: var(--down); background: #fdf5f5; }
   /* Change: a trade just added glows once, and totals that changed brighten briefly */
   .holdings tr.just-added { animation: added 900ms var(--ease-out); }
   .changed { animation: changed 600ms var(--ease-out); }
+
+  /* The mix bar wipes in the first time, then each share slides to its new size */
+  .mix:not([hidden]) .mix-bar { animation: wipe 420ms var(--ease-out); }
+  .mix-seg { transition: flex-grow 260ms var(--ease-out); }
 }
+@keyframes wipe { from { clip-path: inset(0 100% 0 0 round 999px); } }
 @keyframes drop-in { from { opacity: 0; transform: translateY(-6px) scale(0.985); } }
 @keyframes fade-in { from { opacity: 0; transform: translateY(-2px); } }
 @keyframes added { from { background-color: #f1e3bf; } to { background-color: transparent; } }

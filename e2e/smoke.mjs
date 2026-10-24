@@ -28,6 +28,9 @@ await page.keyboard.press('ArrowDown'); // opens
 await page.keyboard.press('m'); // jumps to MSFT
 await page.keyboard.press('Enter');
 assert.match(await text('stock-value'), /MSFT/);
+assert.equal(await page.inputValue('#price'), ''); // the buy price is the user's to enter
+assert.equal(await text('today-text'), "Today's sample price: USD 430.00");
+await page.click('#use-today');
 assert.equal(await page.inputValue('#price'), '430.00');
 await page.reload();
 
@@ -37,7 +40,6 @@ assert.equal(await text('symbol-error'), 'Choose a symbol.');
 assert.match(await text('shares-error'), /Enter how many shares/);
 assert.match(await text('price-error'), /Enter the price you paid/);
 await pickStock('FAB');
-assert.equal(await page.inputValue('#price'), '15.50'); // filled with the sample price
 await page.fill('#shares', '2.5');
 await page.fill('#price', '1.234');
 await page.click('button[type=submit]');
@@ -45,16 +47,14 @@ assert.equal(await text('shares-error'), 'Shares must be a whole number.');
 assert.match(await text('price-error'), /up to 2 decimals/);
 assert.equal(await page.locator('#holdings').isHidden(), true);
 
-// 2. Add an AED and a USD trade; the buy price can be changed after autofill
+// 2. Add an AED and a USD trade at older buy prices, so they show a gain
 await pickStock('EMAAR');
-assert.equal(await page.inputValue('#price'), '14.00');
 await page.fill('#shares', '100');
 await page.fill('#price', '12.50');
 assert.equal(await text('cost-preview'), 'This trade costs AED 1,250.00.');
 await page.click('button[type=submit]');
 await pickStock('AAPL');
 assert.match(await text('price-ccy'), /USD/);
-assert.equal(await page.inputValue('#price'), '230.00');
 await page.fill('#shares', '10');
 await page.fill('#price', '200');
 assert.equal(await text('cost-preview'), 'This trade costs AED 7,345.00 at 3.6725 per dollar.');

@@ -42,3 +42,13 @@ _With three iPhone screenshots of the live app._
 > - Can we have a drop list instead?
 > - Also, a company logo beside each corresponding stock?
 
+## Prompt 10 — Questions about the holdings numbers
+_With an iPhone screenshot of a FAB holding, the "%" labels circled._
+> - The percentage is going on the next line.
+> - What is the meaning of "0.00%"?
+> - Is it expected that Gain or Loss will always be 0?
+
+## Prompt 11 — Choice on the buy price
+_Answer to Claude's question on how the buy price should work._
+> Go with the approach that gives the best UX and UI, while respecting the required rules.
+

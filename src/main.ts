@@ -33,13 +33,22 @@ const stock = createStockSelect({
   valueEl: $('stock-value'),
   instruments: INSTRUMENTS,
   onChange: inst => {
-    fields.price.value = priceText(inst.priceCents);
+    // Show today's sample price next to the buy price; the user decides what they paid.
     $<HTMLSpanElement>('price-ccy').textContent = `(${inst.currency})`;
+    $('today-text').textContent = `Today's sample price: ${inst.currency} ${priceText(inst.priceCents)}`;
+    $('today').hidden = false;
     clearError('symbol');
-    clearError('price');
     updatePreview();
     fields.shares.focus();
   },
+});
+
+$<HTMLButtonElement>('use-today').addEventListener('click', () => {
+  const inst = findInstrument(stock.value());
+  if (!inst) return;
+  fields.price.value = priceText(inst.priceCents);
+  clearError('price');
+  updatePreview();
 });
 
 const selectedSymbol = () => stock.value();
@@ -93,6 +102,7 @@ form.addEventListener('submit', e => {
   form.reset();
   stock.reset();
   $<HTMLSpanElement>('price-ccy').textContent = '(AED)';
+  $('today').hidden = true;
   updatePreview();
   render();
   stock.focus();
@@ -161,7 +171,7 @@ function render() {
         cell(p.shares.toLocaleString('en'), 'num', 'Shares'),
         cell(formatAed(p.valueMicro), 'num', 'Value'),
         cell(formatAed(p.gainMicro, { signed: true }), `num ${toneClass(p.gainMicro)}`, 'Gain or loss'),
-        cell(formatPct(p.gainMicro, p.costMicro), `num ${toneClass(p.gainMicro)}`, '%'),
+        cell(formatPct(p.gainMicro, p.costMicro), `num ${toneClass(p.gainMicro)}`, 'Return'),
         action,
       );
       return tr;

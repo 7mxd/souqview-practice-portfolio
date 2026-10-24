@@ -125,6 +125,12 @@ input[aria-invalid='true'] { border-color: var(--down); background: #fdf5f5; }
 .opt-aed { font-size: 12px; font-weight: 400; color: var(--text-2); }
 
 .stock-cell { display: flex; align-items: center; gap: 12px; }
+.today { margin: 2px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-size: 13.5px; color: var(--gold-deep); font-weight: 500; }
+.pill-button {
+  font: inherit; font-size: 13px; font-weight: 600; padding: 6px 12px; min-height: 34px; border-radius: 999px;
+  border: 1px solid var(--gold); background: var(--tab); color: var(--gold-deep); cursor: pointer;
+}
+.pill-button:hover { background: #e8dcc0; }
 .cost-preview { margin: 0; min-height: 1.5em; color: var(--gold-deep); font-weight: 500; }
 
 @media (max-width: 560px) {

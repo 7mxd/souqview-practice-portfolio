@@ -23,7 +23,7 @@ describe('toAed', () => {
 
   it('keeps AED prices as they are', () => {
     // 14.00 AED -> 14 AED, stored as micro-AED (1e-6)
-    expect(toAed(1400n, 'AED')).toBe(14_000_001n);
+    expect(toAed(1400n, 'AED')).toBe(14_000_000n);
   });
 
   it('converts USD exactly, with no floating-point drift', () => {

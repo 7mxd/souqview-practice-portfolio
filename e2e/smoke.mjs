@@ -55,10 +55,12 @@ assert.equal(await text('cost-preview'), 'This trade costs AED 1,250.00.');
 await page.click('button[type=submit]');
 await pickStock('AAPL');
 assert.match(await text('price-ccy'), /USD/);
+assert.equal(await page.getAttribute('#price', 'placeholder'), 'e.g. 230.00'); // hint follows the picked stock
 await page.fill('#shares', '10');
 await page.fill('#price', '200');
 assert.equal(await text('cost-preview'), 'This trade costs AED 7,345.00 at 3.6725 per dollar.');
 await page.click('button[type=submit]');
+assert.equal(await page.getAttribute('#price', 'placeholder'), 'e.g. 14.00'); // back to the default after adding
 
 // EMAAR value 1,400.00, gain +150.00 (+12.00%); AAPL value 8,446.75, gain +1,101.75 (+15.00%)
 assert.equal(await text('total-value'), 'AED 9,846.75');

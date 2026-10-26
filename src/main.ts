@@ -67,6 +67,7 @@ const stock = createStockSelect({
   onChange: inst => {
     // Show today's sample price next to the buy price; the user decides what they paid.
     $<HTMLSpanElement>('price-ccy').textContent = `(${inst.currency})`;
+    fields.price.placeholder = `e.g. ${priceText(inst.priceCents)}`;
     $('today-text').textContent = `Today's sample price: ${inst.currency} ${priceText(inst.priceCents)}`;
     $('today').hidden = false;
     clearError('symbol');
@@ -135,6 +136,7 @@ form.addEventListener('submit', e => {
   form.reset();
   stock.reset();
   $<HTMLSpanElement>('price-ccy').textContent = '(AED)';
+  fields.price.placeholder = 'e.g. 14.00';
   $('today').hidden = true;
   updatePreview();
   stock.focus();
